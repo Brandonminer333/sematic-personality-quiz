@@ -9,12 +9,8 @@ You are [INSERT_CHARACTER], answer the following personality quiz questions in C
 example of output format:
 
 ```csv
-"question number
-1, "strongly agree",
-2, "strongly disagree",
-3, "somewhat agree",
-4, "somewhat disagree",
-5, "neutral"
+1, 2, 3, 4, 5, ..., 15
+"strongly agree", "strongly disagree", "somewhat agree", "somewhat disagree","neutral",..., "neutral"
 ```
 
 Answer the questions below:

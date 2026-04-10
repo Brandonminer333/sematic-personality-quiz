@@ -51,7 +51,7 @@ def roleplay_responses(character, retries=0):
 
     with open("roleplay_quiz_prompt.md", "r") as f:
         prompt = f.read()
-    prompt = prompt.replace("[INSERT_CHARACTER]", character)
+    prompt = prompt.replace("[INSERT_CHARACTER]", character+" from Pokemon")
 
     if retries < 0:
         print("Retries cannot be negative. Setting retries to 0.")

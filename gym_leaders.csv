@@ -1,82 +1,76 @@
-Leader,Type
-Brock,Rock
-Misty,Water
-Lt. Surge,Electric
-Erika,Grass
-Koga,Poison
-Sabrina,Psychic
-Blaine,Fire
-Giovanni,Ground
-Janine,Poison
-Blue,Various
-Falkner,Flying
-Bugsy,Bug
-Whitney,Normal
-Morty,Ghost
-Chuck,Fighting
-Jasmine,Steel
-Pryce,Ice
-Clair,Dragon
-Roxanne,Rock
-Brawly,Fighting
-Wattson,Electric
-Flannery,Fire
-Norman,Normal
-Winona,Flying
-Tate,Psychic
-Liza,Psychic
-Wallace,Water
-Juan,Water
-Roark,Rock
-Gardenia,Grass
-Maylene,Fighting
-Crasher Wake,Water
-Fantina,Ghost
-Byron,Steel
-Candice,Ice
-Volkner,Electric
-Cilan,Grass
-Chili,Fire
-Cress,Water
-Lenora,Normal
-Burgh,Bug
-Elesa,Electric
-Clay,Ground
-Skyla,Flying
-Brycen,Ice
-Drayden,Dragon
-Iris,Dragon
-Cheren,Normal
-Roxie,Poison
-Burgh,Bug
-Elesa,Electric
-Clay,Ground
-Skyla,Flying
-Drayden,Dragon
-Marlon,Water
-Viola,Bug
-Grant,Rock
-Korrina,Fighting
-Ramos,Grass
-Clemont,Electric
-Valerie,Fairy
-Olympia,Psychic
-Wulfric,Ice
-Milo,Grass
-Nessa,Water
-Kabu,Fire
-Bea,Fighting
-Allister,Ghost
-Opal,Fairy
-Gordie,Rock
-Melony,Ice
-Piers,Dark
-Raihan,Dragon
-Katy,Bug
-Brassius,Grass
-Iono,Electric
-Kofu,Water
-Larry,Normal
-Ryme,Ghost
-Tulip,Psychic
-Grusha,Ice
+Leader,Type,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15
+Brock,Rock,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,strongly agree,strongly agree
+Misty,Water,somewhat agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,somewhat agree,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Lt. surge,Electric,strongly agree,strongly agree,strongly disagree,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly disagree,somewhat agree,strongly agree,somewhat agree,strongly agree,somewhat agree,somewhat disagree
+Erika,Grass,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,neutral,somewhat agree,strongly agree,strongly agree
+Koga,Poison,strongly disagree,somewhat agree,strongly agree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,strongly disagree,strongly agree,somewhat agree,strongly agree,strongly disagree,strongly agree,somewhat disagree
+sabrina,Psychic,somewhat disagree,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat disagree,strongly agree,somewhat agree
+Blaine,Fire,somewhat agree,strongly agree,neutral,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,somewhat agree,somewhat agree,strongly agree,somewhat disagree
+Giovanni,Ground,somewhat disagree,strongly agree,neutral,strongly agree,strongly agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Janine,Poison,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,strongly agree,strongly agree
+Falkner,Flying,somewhat disagree,strongly agree,neutral,strongly agree,strongly agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,neutral,neutral,strongly agree,strongly agree
+Bugsy,Bug,strongly agree,somewhat agree,somewhat disagree,strongly disagree,neutral,strongly disagree,strongly agree,somewhat agree,somewhat disagree,neutral,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Whitney,Normal,strongly agree,somewhat agree,strongly disagree,somewhat disagree,somewhat disagree,neutral,strongly agree,somewhat disagree,strongly agree,somewhat agree,neutral,somewhat disagree,strongly agree,somewhat agree,somewhat disagree
+Morty,Ghost,somewhat agree,neutral,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,strongly agree,strongly agree
+Chuck,Fighting,somewhat agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,somewhat disagree
+Jasmine,steel,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Pryce,Ice,somewhat disagree,somewhat agree,somewhat agree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat disagree,somewhat disagree,neutral,strongly agree,strongly agree
+Clair,dragon,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,somewhat agree,somewhat agree,strongly agree,somewhat disagree
+Roxanne,Rock,somewhat agree,strongly agree,neutral,strongly agree,strongly agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,neutral,somewhat agree,strongly agree,strongly agree
+Brawly,Fighting,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat disagree,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Wattson,Electric,strongly agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat disagree,neutral,strongly agree,strongly agree,strongly agree
+Flannery,Fire,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat disagree,neutral,strongly agree,somewhat disagree,strongly agree,neutral,strongly agree,somewhat agree,strongly agree,neutral,somewhat disagree
+Norman,Normal,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,somewhat agree,strongly agree,strongly agree
+Winona,Flying,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,neutral
+Tate,Psychic,somewhat agree,neutral,somewhat disagree,strongly agree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat agree,somewhat agree,strongly agree,somewhat disagree
+Liza,Psychic,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Wallace,Water,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,strongly disagree,somewhat agree,strongly agree,somewhat disagree,somewhat agree,somewhat disagree,somewhat agree,somewhat agree,strongly agree,somewhat disagree
+Juan,Water,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Roark,Rock,somewhat disagree,strongly agree,somewhat agree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,strongly disagree
+Gardenia,Grass,somewhat agree,neutral,somewhat disagree,strongly agree,somewhat agree,strongly disagree,somewhat agree,somewhat agree,somewhat disagree,somewhat agree,neutral,somewhat agree,somewhat agree,strongly agree,somewhat disagree
+Maylene,Fighting,somewhat agree,strongly agree,neutral,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Crasher Wake,Water,strongly agree,strongly agree,strongly disagree,somewhat agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly agree,somewhat agree,somewhat disagree
+Fantina,Ghost,somewhat agree,strongly agree,neutral,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,strongly agree,somewhat agree,strongly agree,somewhat disagree
+Byron,steel,somewhat disagree,strongly agree,somewhat agree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree
+Candice,Ice,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,neutral,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Volkner,Electric,strongly disagree,somewhat disagree,strongly agree,strongly agree,somewhat agree,strongly agree,somewhat agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat disagree,strongly agree,somewhat disagree
+Cilan,Grass,strongly agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,somewhat agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Chili,Fire,strongly agree,strongly agree,strongly disagree,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Cress,Water,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Lenora,Normal,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Burgh,Bug,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,strongly disagree,strongly agree,somewhat agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree
+Elesa,Electric,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly agree,strongly agree,somewhat disagree
+Clay,Ground,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat agree
+skyla,Flying,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,neutral,somewhat agree,strongly agree,strongly agree,strongly agree,somewhat disagree
+Brycen,Ice,somewhat agree,strongly agree,neutral,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,neutral,somewhat disagree,strongly agree,strongly agree
+drayden,dragon,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Iris,dragon,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat disagree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly agree,somewhat agree,somewhat disagree
+Cheren,Normal,somewhat disagree,somewhat agree,neutral,strongly agree,strongly agree,strongly disagree,strongly agree,somewhat agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,somewhat agree,strongly agree,somewhat disagree
+Roxie,Poison,somewhat agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,strongly agree,strongly agree,strongly agree,somewhat disagree
+Marlon,Water,somewhat agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Viola,Bug,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,somewhat disagree
+Grant,Rock,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat agree
+Korrina,Fighting,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly agree,strongly agree,somewhat disagree
+Ramos,Grass,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Clemont,Electric,somewhat agree,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,strongly agree,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Valerie,Fairy,somewhat agree,strongly agree,neutral,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Olympia,Psychic,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat agree
+Wulfric,Ice,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,neutral,somewhat disagree,somewhat agree,strongly agree,strongly agree
+Milo,Grass,strongly agree,strongly agree,strongly disagree,strongly agree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree
+Nessa,Water,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Kabu,Fire,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat disagree
+Bea,Fighting,somewhat agree,strongly agree,somewhat disagree,strongly agree,somewhat agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+allister,Ghost,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly agree,strongly disagree,somewhat disagree,somewhat disagree,somewhat agree,strongly agree,somewhat disagree,somewhat agree,neutral,strongly agree,strongly agree
+Opal,Fairy,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,neutral,strongly agree,somewhat disagree,somewhat agree,somewhat agree,strongly agree,strongly agree,strongly agree,somewhat disagree
+Gordie,Rock,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,somewhat agree
+Melony,Ice,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,somewhat agree,strongly agree,neutral
+Piers,dark,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,somewhat agree,strongly disagree,somewhat agree,strongly agree,somewhat disagree,somewhat agree,neutral,somewhat agree,somewhat agree,strongly agree,somewhat disagree
+Raihan,dragon,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat disagree,strongly agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Katy,Bug,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,somewhat disagree
+Brassius,Grass,somewhat disagree,somewhat agree,somewhat agree,strongly agree,strongly agree,strongly disagree,neutral,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly agree,strongly agree,strongly disagree
+Iono,Electric,strongly agree,strongly agree,somewhat disagree,somewhat disagree,somewhat agree,somewhat disagree,strongly agree,somewhat agree,somewhat disagree,somewhat disagree,strongly agree,strongly agree,strongly agree,strongly agree,somewhat disagree
+Kofu,Water,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,somewhat disagree
+Larry,Normal,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,strongly agree,neutral,somewhat disagree,somewhat agree,strongly agree,strongly agree
+Ryme,Ghost,somewhat agree,strongly agree,somewhat disagree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,neutral,strongly agree,strongly agree,somewhat disagree
+Tulip,Psychic,strongly agree,somewhat agree,somewhat disagree,somewhat disagree,neutral,strongly disagree,strongly agree,somewhat agree,somewhat disagree,somewhat agree,somewhat agree,somewhat agree,strongly agree,strongly agree,somewhat disagree
+Grusha,Ice,somewhat disagree,somewhat agree,somewhat agree,strongly agree,strongly agree,strongly disagree,strongly agree,strongly agree,somewhat disagree,somewhat agree,somewhat agree,somewhat disagree,neutral,strongly agree,somewhat agree
