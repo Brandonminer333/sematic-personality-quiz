@@ -77,7 +77,7 @@ function App() {
     } else {
       // Submit answers and get result
       try {
-        const result = await fetch('http://localhost:8000/submit_answers', {
+        const result = await fetch('https://api-815831027006.europe-west1.run.app/submit_answers', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(newAnswers)
