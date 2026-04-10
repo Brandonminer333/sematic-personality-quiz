@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 import numpy as np
 import pandas as pd
 
@@ -8,13 +7,29 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5173/sematic-personality-quiz/",
+        "https://brandonminer333.github.io/sematic-personality-quiz/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-df = pd.read_csv("gym_leaders_synthetic.csv")
+df = pd.read_csv("gym_leaders.csv")
+
+# Map the answer strings to numerical values in the dataframe
+mapping = {
+    "strongly disagree": -1.0,
+    "somewhat disagree": -0.5,
+    "neutral": 0.0,
+    "somewhat agree": 0.5,
+    "strongly agree": 1.0,
+}
+
+for i in range(1, 16):
+    col = f"Q{i}"
+    df[col] = df[col].map(lambda x: mapping.get(str(x).strip().lower(), 0.0))
 
 questions = [
     {"text": "I feel most like myself when I'm around other people."},
@@ -61,13 +76,18 @@ results = {
     "Ground": {"emoji": "🏜️", "type": "GROUND TYPE", "headline": "The Earthy, Steady Force", "tag": "Ground Type", "desc": "You are immovable when it counts. Practical, warm, and completely trustworthy — you don't make promises you can't keep. You're the foundation that holds everything together, and your quiet strength speaks louder than anyone's noise.", "traits": ["Practical", "Loyal", "Steady", "Dependable"], "famous": "Giovanni — the Earth Badge leader, grounded and ruthlessly effective (in his own way).", "color": "#e0c068"},
 }
 
-last_result = None
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 def cosine_similarity(vector, vectors):
     dot_products = vectors @ vector
     norms = np.linalg.norm(vectors, axis=1) * np.linalg.norm(vector)
-    return dot_products / norms
+    with np.errstate(divide='ignore', invalid='ignore'):
+        similarities = dot_products / norms
+    similarities = np.nan_to_num(similarities, nan=0.0)
+    return similarities
 
 
 def rank_types_by_similarity(new_vector, df):
@@ -92,32 +112,21 @@ def rank_types_by_similarity(new_vector, df):
 
 
 @app.post("/submit_answers")
-async def submit_answers(answers: List[str]):
+async def submit_answers(answers: list[float]):
     global last_result
-    mapping = {
-        "strongly disagree": -1.0,
-        "somewhat disagree": -0.5,
-        "neutral": 0.0,
-        "somewhat agree": 0.5,
-        "strongly agree": 1.0,
-        "0": -1.0,
-        "1": -0.5,
-        "2": 0.0,
-        "3": 0.5,
-        "4": 1.0
-    }
-    new_vector = np.array([
-        mapping.get(str(ans).strip().lower(), 0.0)
-        for ans in answers
-    ])
+
+    # Frontend already sends floats, so we can just convert directly to numpy array
+    new_vector = np.array(answers)
+
     ranking = rank_types_by_similarity(new_vector, df)
     top_type = ranking.index[0]
+
     last_result = results.get(top_type, results['Normal'])
-    return {"message": "Answers submitted"}
 
-
-@app.get("/result")
-async def get_result():
     if last_result is None:
         return {"error": "No result available"}
-    return last_result
+
+    return {
+        "message": "Answers submitted",
+        "result": last_result
+    }

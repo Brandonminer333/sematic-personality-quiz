@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 
+// Array of quiz questions, each with a text property
 const questions = [
   { text: "I feel most like myself when I'm around other people." },
   { text: "I often take the lead in group situations without being asked." },
@@ -19,14 +20,16 @@ const questions = [
   { text: "I prefer finding a reliable method and sticking to it over experimenting with new approaches." }
 ];
 
+// Array of possible answer options, each with text and numerical value
 const answerOptions = [
-  { text: "strongly disagree", value: "strongly disagree" },
-  { text: "somewhat disagree", value: "somewhat disagree" },
-  { text: "neutral", value: "neutral" },
-  { text: "somewhat agree", value: "somewhat agree" },
-  { text: "strongly agree", value: "strongly agree" }
+  { text: "strongly disagree", value: -1.0 },
+  { text: "somewhat disagree", value: -0.5 },
+  { text: "neutral", value: 0.0 },
+  { text: "somewhat agree", value: 0.5 },
+  { text: "strongly agree", value: 1.0 }
 ];
 
+// Object containing result data for each personality type, including emoji, type, headline, description, traits, famous person, and color
 const results = {
   Fire:     { emoji:"🔥", type:"FIRE TYPE", headline:"The Blazing Trailblazer", tag:"Fire Type", desc:"You burn bright and inspire everyone around you. Passionate, bold, and impossible to ignore — you lead with your heart and light up every room you enter. You're not afraid to take risks, and that fearless energy is contagious.", traits:["Bold","Passionate","Inspirational","Energetic"], famous:"Blaine — the Volcano Badge gym leader, a fiery quiz master who tests the bold.", color:"#ff6b35" },
   Water:    { emoji:"🌊", type:"WATER TYPE", headline:"The Deep-Feeling Adaptor", tag:"Water Type", desc:"You're fluid, intuitive, and emotionally intelligent. You flow around obstacles rather than crashing through them, and your calm surface hides extraordinary depth. People trust you completely — you always know what someone needs.", traits:["Empathetic","Intuitive","Calm","Adaptable"], famous:"Misty — the Cascade Badge leader, fierce and flowing, always in motion.", color:"#38b6ff" },
@@ -46,57 +49,63 @@ const results = {
   Ground:   { emoji:"🏜️", type:"GROUND TYPE", headline:"The Earthy, Steady Force", tag:"Ground Type", desc:"You are immovable when it counts. Practical, warm, and completely trustworthy — you don't make promises you can't keep. You're the foundation that holds everything together, and your quiet strength speaks louder than anyone's noise.", traits:["Practical","Loyal","Steady","Dependable"], famous:"Giovanni — the Earth Badge leader, grounded and ruthlessly effective (in his own way).", color:"#e0c068" },
 };
 
+// Main App component function
 function App() {
+  // State variables to manage the app's current screen, current question index, selected answer option, collected answers, result data, and any error messages
   const [screen, setScreen] = useState('intro');
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [resultData, setResultData] = useState(null);
+  const [error, setError] = useState(null);
 
+  // Function to start the quiz by changing the screen to 'quiz'
   const startQuiz = () => setScreen('quiz');
 
+  // Function to select an answer option for the current question
   const selectOption = (value) => setSelectedOption(value);
 
+  // Function to proceed to the next question or submit answers if it's the last question
   const nextQuestion = async () => {
     if (selectedOption === null) return;
     const newAnswers = [...answers, selectedOption];
     setAnswers(newAnswers);
+    
     if (currentQ < questions.length - 1) {
       setCurrentQ(currentQ + 1);
       setSelectedOption(null);
     } else {
-      // Submit answers
+      // Submit answers and get result
       try {
-        const submitRes = await fetch('http://localhost:8000/submit_answers', {
+        const result = await fetch('http://localhost:8000/submit_answers', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(newAnswers)
         });
 
-        if (!submitRes.ok) {
-          throw new Error(`Submit failed: ${submitRes.status}`);
+        // Fixed typo: was res.status, now result.status
+        if (!result.ok) {
+          throw new Error(`Submit failed: ${result.status}`);
         }
 
-        // Then get result
-        const res = await fetch('http://localhost:8000/result');
-        if (!res.ok) {
-          throw new Error(`Result fetch failed: ${res.status}`);
-        }
-
-        const data = await res.json();
+        const data = await result.json();
         setResultData(data);
         setScreen('result');
       } catch (error) {
         console.error('Error:', error);
+        setError('Failed to submit answers. Please try again.');
+        setScreen('error');
       }
     }
   };
 
+  // Function to restart the quiz, resetting all state variables
   const restart = () => {
     setAnswers([]);
     setResultData(null);
     setCurrentQ(0);
     setSelectedOption(null);
+    setError(null);
     setScreen('intro');
   };
 
@@ -111,7 +120,7 @@ function App() {
 
   const Quiz = () => {
     const progress = ((currentQ + 1) / questions.length) * 100;
-    const letters = ['A','B','C','D'];
+    const letters = ['A','B','C','D','E'];
     return (
       <>
         <div className="progress-label">QUESTION {currentQ+1} OF {questions.length}</div>
@@ -134,23 +143,48 @@ function App() {
     );
   };
 
-  const Result = () => (
-    <div className="result-card" style={{'--type-color': resultData?.color}}>
-      <div className="result-badge">{resultData?.emoji}</div>
-      <div className="result-type">{resultData?.type}</div>
-      <div className="result-headline">{resultData?.headline}</div>
-      <div><span className="type-tag">{resultData?.tag}</span></div>
-      <div className="result-desc">{resultData?.desc}</div>
-      <div className="traits">
-        {resultData?.traits?.map(trait => <span key={trait} className="trait">{trait}</span>)}
-      </div>
-      <div className="famous-leader">
-        <div className="famous-label">A Famous Leader Like You</div>
-        <div className="famous-name">{resultData?.famous}</div>
-      </div>
-      <button className="restart-btn" onClick={restart}>↺ TRY AGAIN</button>
+  const ErrorScreen = () => (
+    <div className="intro-card">
+      <p>{error}</p>
+      <button className="start-btn" onClick={restart}>TRY AGAIN</button>
     </div>
   );
+
+  const Result = () => {
+    // Fixed logic: The backend now returns the full object inside 'result'
+    const data = resultData?.result;
+
+    // Fallback in case the backend returns something unexpected
+    if (!data) {
+      return (
+        <div className="intro-card">
+          <p>Oops! We couldn't calculate your type correctly.</p>
+          <button className="start-btn" onClick={restart}>TRY AGAIN</button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="card result-card" style={{ borderTop: `5px solid ${data.color}` }}>
+        <div style={{ fontSize: '3rem' }}>{data.emoji}</div>
+        <h2 style={{ color: data.color }}>{data.type}</h2>
+        <h3>{data.headline}</h3>
+        <p>{data.desc}</p>
+        
+        <div className="traits-container">
+          <strong>Traits:</strong> 
+          <ul>
+            {data.traits.map((trait, i) => (
+              <li key={i}>{trait}</li>
+            ))}
+          </ul>
+        </div>
+        
+        <p><strong>Similar to:</strong> {data.famous}</p>
+        <button className="start-btn" onClick={restart}>RETAKE QUIZ ▶</button>
+      </div>
+    );
+  };
 
   return (
     <div className="container">
@@ -162,6 +196,7 @@ function App() {
       {screen === 'intro' && <Intro />}
       {screen === 'quiz' && <Quiz />}
       {screen === 'result' && <Result />}
+      {screen === 'error' && <ErrorScreen />}
     </div>
   )
 }
