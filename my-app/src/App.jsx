@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import quizResults from './assets/quiz_results.json'  // Add this import
 
 // Array of quiz questions, each with a text property
 const questions = [
@@ -51,7 +52,6 @@ const results = {
 
 // Main App component function
 function App() {
-  // State variables to manage the app's current screen, current question index, selected answer option, collected answers, result data, and any error messages
   const [screen, setScreen] = useState('intro');
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -59,13 +59,10 @@ function App() {
   const [resultData, setResultData] = useState(null);
   const [error, setError] = useState(null);
 
-  // Function to start the quiz by changing the screen to 'quiz'
   const startQuiz = () => setScreen('quiz');
-
-  // Function to select an answer option for the current question
   const selectOption = (value) => setSelectedOption(value);
 
-  // Function to proceed to the next question or submit answers if it's the last question
+  // MODIFIED: Replace the API call with local lookup
   const nextQuestion = async () => {
     if (selectedOption === null) return;
     const newAnswers = [...answers, selectedOption];
@@ -75,29 +72,26 @@ function App() {
       setCurrentQ(currentQ + 1);
       setSelectedOption(null);
     } else {
-      // Submit answers and get result
+      // Get result from local JSON instead of API
       try {
-        const result = await fetch('https://api-815831027006.europe-west1.run.app/submit_answers', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(newAnswers)
-        });
-
-        // Fixed typo: was res.status, now result.status
-        if (!result.ok) {
-          throw new Error(`Submit failed: ${result.status}`);
+        const key = newAnswers.join(',');
+        const pokemonType = quizResults[key];
+        
+        if (!pokemonType || !results[pokemonType]) {
+          throw new Error('Result not found');
         }
-
-        const data = await result.json();
-        setResultData(data);
+        
+        // Match the same format your old API returned
+        setResultData({ result: results[pokemonType] });
         setScreen('result');
       } catch (error) {
         console.error('Error:', error);
-        setError('Failed to submit answers. Please try again.');
+        setError('Failed to calculate result. Please try again.');
         setScreen('error');
       }
     }
   };
+
 
   // Function to restart the quiz, resetting all state variables
   const restart = () => {

@@ -9,9 +9,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://localhost:5173/sematic-personality-quiz/",
-        "brandonminer333.github.io/sematic-personality-quiz/",
-        "https://brandonminer333.github.io/sematic-personality-quiz/"],
+        "https://brandonminer333.github.io"  # Stripped the path and trailing slash!
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
