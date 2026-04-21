@@ -4,3 +4,8 @@ python-dotenv
 fastapi
 uvicorn
 playwright
+requests
+beautifulsoup4
+openai
+pymupdf
+pytest
