@@ -1,0 +1,22 @@
+{
+  "name": "sematic-personality-quiz-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4"
+  }
+}

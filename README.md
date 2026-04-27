@@ -1,49 +1,68 @@
-# Agentic Personality Quiz Builder
+# Semantic Personality Quiz
 
-## Overview
+An interactive personality quiz that maps the user's answers onto a vector space and finds their nearest **Pokémon gym leader type** (Fire, Water, Grass, etc.) by weighted cosine similarity. Gym leaders are used as a proxy: each leader canonically represents one type, and the LLM is prompted to embody that type's general personality rather than the specific character.
 
-A personality quiz engine that uses vector geometry and LLM-generated synthetic data to match users to a character archetype from any fictional universe. Rather than assigning arbitrary point values like traditional quizzes, each answer contributes a weighted vector toward one or more archetypes. The quiz result is the argmax cosine similarity between the user's aggregated answer vector and a set of normalized reference vectors — one per archetype.
+## Architecture
 
-The system is built around an **agent** that receives a quiz topic, determines what to scrape, generates synthetic personality data by prompting an LLM to roleplay as each archetype, and selects the most discriminating questions for that character space. This makes the quiz engine character-set agnostic: swapping "Pokemon types" for "Hogwarts houses" or "Greek gods" is a matter of re-running the agent with a new prompt.
+```
+sematic-personality-quiz/
+├── frontend/          # Next.js (App Router) — Vercel-hosted web UI
+├── data_sythesizer/   # Python — synthetic-data + reference-vector generation
+├── tests/             # pytest suite for the synthesizer
+├── gym_leader_eda.ipynb
+└── requirements.txt
+```
 
-Questions are lifestyle-based and non-leading, which means they can be reused and shuffled across character sets — and across quiz attempts, allowing users to verify their results without gaming the quiz on a second pass.
+> A FastAPI backend (`backend/`, deployed to Google Cloud Run) is on the roadmap and will replace the precomputed answer-lookup table currently bundled with the frontend. See [Roadmap](#roadmap).
 
----
+## Classification
 
-## MVP — Which Pokémon Type Are You?
+- Each answer maps to a weight vector over all archetypes.
+- User answers are summed and normalized to a unit vector.
+- Result is the archetype with the highest cosine similarity to the user's unit vector.
+- A decision tree trained on per-question answer sequences serves as a secondary validator during development; disagreement between the two flags miscalibrated questions or reference vectors.
 
-The MVP targets **Pokémon gym leader types** (Fire, Water, Grass, etc.) as archetypes. Gym leaders are used as a proxy: each leader canonically represents one type, and the LLM is prompted to embody that type's general personality rather than the specific character.
+## Frontend (Next.js, Vercel)
 
-### Agent Tools
+The web UI lives in [`frontend/`](./frontend). See [`frontend/README.md`](./frontend/README.md) for run/test instructions.
 
-| Tool | Purpose |
-|---|---|
-| `scrape_archetype_data(topic)` | Determines the best source to scrape and extracts relevant archetype info (e.g. Bulbapedia for Pokémon types) |
-| `generate_synthetic_data(archetypes, questions)` | Prompts the LLM to answer each question as each archetype; runs multiple times per archetype and averages for stable reference vectors |
-| `check_db_for_similar_quiz(topic)` | Checks whether a matching or overlapping quiz already exists in the database to avoid redundant generation |
-| `question_selector(reference_vectors)` | Selects questions that maximize separation between reference vectors; flags and handles near-collinear archetypes |
-| `validate_reference_vectors(vectors)` | Checks that all archetypes have meaningful separation; surfaces pairs that are too similar to discriminate |
+Deploy by importing the repo into Vercel and setting **Root Directory** to `frontend`. No `vercel.json` is required.
 
-### Classification
+## Python tooling
 
-- Each answer maps to a weight vector over all archetypes
-- User answers are summed and normalized to a unit vector
-- Result is the archetype with the highest cosine similarity to the user's unit vector
-- A decision tree trained on per-question answer sequences serves as a secondary validator during development; disagreement between the two flags miscalibrated questions or reference vectors
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+pytest
+```
 
-### Tech Stack
+## Pre-commit hook
 
-- Python
-- BeautifulSoup4 for scraping
-- Anthropic API for synthetic data generation and agent reasoning
-- (TBD) vector store for reference vectors and quiz cache
+Runs an end-to-end smoke test (boots the Next.js dev server, walks the full
+quiz flow with Playwright, asserts a result card renders) before every commit.
+The hook is skipped automatically when no `frontend/`, `backend/`, `tests/`,
+`requirements.txt`, or `conftest.py` changes are staged.
 
----
+One-time setup:
 
-## Future Updates
+```bash
+pip install -r requirements.txt
+playwright install chromium
+(cd frontend && npm install)
+./scripts/install-git-hooks.sh
+```
 
-- **Character-set agnostic pipeline** — rerun the agent on any topic (Hogwarts houses, Myers-Briggs archetypes, office roles, etc.) with no changes to the quiz engine
-- **Question shuffling** — randomize question and answer order between attempts so users can double-check results without reverse-engineering the quiz
-- **Soft results** — optionally surface the top 2–3 archetypes with cosine scores rather than a hard single answer, for users who want nuance
-- **Web UI** — a clean frontend for taking and sharing quizzes
-- **Quiz database** — store generated quizzes so the agent can reuse or extend existing character sets rather than regenerating from scratch
+Run the integration test directly any time:
+
+```bash
+pytest tests/test_integration.py
+```
+
+## Roadmap
+
+- **Backend (FastAPI on Google Cloud Run)** — replace the precomputed lookup table with on-demand weighted cosine similarity over reference vectors.
+- **3-D PCA visualization** — render the user's answer-vector embedding next to all gym leader vectors using principal components, displayed on the results screen.
+- **Character-set agnostic pipeline** — rerun the agent on any topic (Hogwarts houses, Myers-Briggs archetypes, office roles, etc.) with no changes to the quiz engine.
+- **Question shuffling** — randomize question and answer order between attempts so users can double-check results without reverse-engineering the quiz.
+- **Soft results** — optionally surface the top 2–3 archetypes with cosine scores rather than a hard single answer, for users who want nuance.
+- **Quiz database** — store generated quizzes so the agent can reuse or extend existing character sets rather than regenerating from scratch.

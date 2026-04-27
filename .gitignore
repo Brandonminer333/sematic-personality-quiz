@@ -1,3 +1,20 @@
+# env / secrets
 .env
+.env.*.local
+
+# python
 __pycache__/
-node_modules
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# node
+node_modules/
+
+# next.js / vercel (in case anything spills out of frontend/)
+.next/
+.vercel/
+
+# os
+.DS_Store

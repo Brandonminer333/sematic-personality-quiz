@@ -4,6 +4,7 @@ python-dotenv
 fastapi
 uvicorn
 playwright
+pytest-playwright
 requests
 beautifulsoup4
 openai
