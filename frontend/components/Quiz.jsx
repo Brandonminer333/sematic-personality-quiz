@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import quizResults from '@/data/quiz_results.json';
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || 'http://localhost:8080';
 
 const questions = [
   { text: "I feel most like myself when I'm around other people." },
@@ -46,7 +48,28 @@ const results = {
   Fairy:    { emoji: '✨', type: 'FAIRY TYPE', headline: 'The Enchanting Heart', tag: 'Fairy Type', desc: "You lead with love — and don't underestimate how powerful that is. Warm, creative, and quietly fierce, you disarm people with your sweetness and then astonish them with your strength. You make the world more beautiful just by being in it.", traits: ['Warm', 'Empathetic', 'Creative', 'Fierce'], famous: 'Valerie — the Fairy Badge leader, dreamy, whimsical, and deeply powerful.', color: '#ee99ac' },
   Bug:      { emoji: '🦋', type: 'BUG TYPE', headline: 'The Underestimated Overcomer', tag: 'Bug Type', desc: 'People overlook you — at first. Then you quietly outwork everyone in the room. You believe in growth, transformation, and finding the extraordinary in the small and unnoticed. Your journey from underdog to champion is what legends are made of.', traits: ['Tenacious', 'Observant', 'Growth-oriented', 'Resourceful'], famous: 'Bugsy — the Hive Badge leader, studying endlessly and thriving from it.', color: '#a8b820' },
   Ground:   { emoji: '🏜️', type: 'GROUND TYPE', headline: 'The Earthy, Steady Force', tag: 'Ground Type', desc: "You are immovable when it counts. Practical, warm, and completely trustworthy — you don't make promises you can't keep. You're the foundation that holds everything together, and your quiet strength speaks louder than anyone's noise.", traits: ['Practical', 'Loyal', 'Steady', 'Dependable'], famous: 'Giovanni — the Earth Badge leader, grounded and ruthlessly effective (in his own way).', color: '#e0c068' },
+  Poison:   { emoji: '☠️', type: 'POISON TYPE', headline: 'The Subtle Operator', tag: 'Poison Type', desc: "You're sharp, sly, and unafraid of the unconventional. You disarm with charm, then move three steps ahead before anyone notices. People underestimate you once — never twice. You thrive in the gray zones and make them yours.", traits: ['Cunning', 'Charismatic', 'Sharp', 'Unconventional'], famous: 'Koga — the Soul Badge leader, silent, deliberate, and quietly lethal.', color: '#a040a0' },
+  Flying:   { emoji: '🪶', type: 'FLYING TYPE', headline: 'The Free-Spirited Visionary', tag: 'Flying Type', desc: "You crave horizon. Bold, optimistic, and impossible to pin down — you'd rather try ten ideas than perfect one. You see the big picture while everyone else stares at the floor, and your energy lifts every room you enter.", traits: ['Free-spirited', 'Optimistic', 'Curious', 'Visionary'], famous: 'Skyla — the Jet Badge leader, soaring, fearless, and endlessly ambitious.', color: '#a890f0' },
 };
+
+async function fetchClassification(answers) {
+  const res = await fetch(`${API_BASE_URL}/classify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers }),
+  });
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const data = await res.json();
+      detail = data?.detail ? ` (${typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)})` : '';
+    } catch {
+      // body wasn't JSON; ignore
+    }
+    throw new Error(`classify failed: ${res.status}${detail}`);
+  }
+  return res.json();
+}
 
 export default function Quiz() {
   const [screen, setScreen] = useState('intro');
@@ -55,12 +78,13 @@ export default function Quiz() {
   const [answers, setAnswers] = useState([]);
   const [resultData, setResultData] = useState(null);
   const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const startQuiz = () => setScreen('quiz');
   const selectOption = (value) => setSelectedOption(value);
 
-  const nextQuestion = () => {
-    if (selectedOption === null) return;
+  const nextQuestion = async () => {
+    if (selectedOption === null || submitting) return;
     const newAnswers = [...answers, selectedOption];
     setAnswers(newAnswers);
 
@@ -70,20 +94,21 @@ export default function Quiz() {
       return;
     }
 
+    setSubmitting(true);
     try {
-      const key = newAnswers.join(',');
-      const pokemonType = quizResults[key];
-
+      const data = await fetchClassification(newAnswers);
+      const pokemonType = data?.type;
       if (!pokemonType || !results[pokemonType]) {
-        throw new Error('Result not found');
+        throw new Error(`Unknown type from server: ${pokemonType}`);
       }
-
       setResultData({ result: results[pokemonType] });
       setScreen('result');
     } catch (err) {
       console.error('Error:', err);
       setError('Failed to calculate result. Please try again.');
       setScreen('error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -93,6 +118,7 @@ export default function Quiz() {
     setCurrentQ(0);
     setSelectedOption(null);
     setError(null);
+    setSubmitting(false);
     setScreen('intro');
   };
 
@@ -148,8 +174,13 @@ export default function Quiz() {
               <button
                 className={`next-btn ${selectedOption !== null ? 'visible' : ''}`}
                 onClick={nextQuestion}
+                disabled={submitting}
               >
-                NEXT QUESTION ▶
+                {submitting
+                  ? 'CALCULATING…'
+                  : currentQ === questions.length - 1
+                    ? 'SEE MY RESULT ▶'
+                    : 'NEXT QUESTION ▶'}
               </button>
             </div>
           </>

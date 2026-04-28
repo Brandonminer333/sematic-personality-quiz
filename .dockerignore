@@ -1,0 +1,42 @@
+# Keep the Cloud Run build context small + reproducible. Only the `api/`
+# package and its requirements need to be copied into the image.
+
+# VCS / editor
+.git/
+.gitignore
+.gitattributes
+.cursor/
+.vscode/
+.idea/
+
+# Python caches / virtualenvs
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node / Next.js (frontend ships separately to Vercel)
+frontend/
+node_modules/
+.next/
+.vercel/
+
+# Tests, notebooks, scripts, offline tooling — none of this belongs in the
+# runtime image.
+tests/
+scripts/
+data_sythesizer/
+*.ipynb
+conftest.py
+pytest.ini
+
+# Misc
+.DS_Store
+.env
+.env.*
+*.log
+README.md

@@ -6,10 +6,15 @@ A [Next.js](https://nextjs.org/) (App Router) app that hosts the gym-leader pers
 
 ```bash
 npm install
+cp .env.example .env.local   # points NEXT_PUBLIC_API_URL at http://localhost:8080
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
+Then open [http://localhost:3000](http://localhost:3000). You'll also need the FastAPI backend running on `localhost:8080` — see the root README for instructions, or run:
+
+```bash
+(cd .. && uvicorn backend.api:app --reload --port 8080)
+```
 
 ## End-to-end tests
 
@@ -28,6 +33,7 @@ When importing the repo into Vercel:
 - **Framework Preset:** Next.js (auto-detected)
 - **Build Command:** `next build` (default)
 - **Install Command:** `npm install` (default)
+- **Environment Variables:** set `NEXT_PUBLIC_API_URL` to the Cloud Run URL of the classifier backend (no trailing slash). This must be set at build time — `NEXT_PUBLIC_*` values are baked into the static bundle.
 
 No `vercel.json` is required.
 
@@ -41,11 +47,8 @@ frontend/
 │   └── globals.css         # site-wide styles
 ├── components/
 │   └── Quiz.jsx            # main client component (the quiz)
-├── data/
-│   └── quiz_results.json   # precomputed answer→type lookup (temporary)
+├── tests/                  # Playwright spec (mocks /classify with route())
 └── public/                 # static assets (favicon, icons)
 ```
 
-> The `quiz_results.json` lookup is a temporary holdover from the gh-pages
-> deployment. It will be removed in a follow-up step in favor of an on-demand
-> weighted-cosine-similarity call to a FastAPI backend.
+The classifier itself lives in `backend/` (FastAPI on Cloud Run). On submit, the quiz POSTs the 15-answer vector to `${NEXT_PUBLIC_API_URL}/classify` and renders the returned type.
