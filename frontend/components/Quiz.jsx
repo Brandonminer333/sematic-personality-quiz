@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import PcaPlot from '@/components/PcaPlot';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || 'http://localhost:8080';
+function normalizeBaseUrl(raw) {
+  if (!raw) return null;
+  return String(raw).replace(/\/+$/, '');
+}
 
 const questions = [
   { text: "I feel most like myself when I'm around other people." },
@@ -53,8 +55,8 @@ const results = {
   Flying:   { emoji: '🪶', type: 'FLYING TYPE', headline: 'The Free-Spirited Visionary', tag: 'Flying Type', desc: "You crave horizon. Bold, optimistic, and impossible to pin down — you'd rather try ten ideas than perfect one. You see the big picture while everyone else stares at the floor, and your energy lifts every room you enter.", traits: ['Free-spirited', 'Optimistic', 'Curious', 'Visionary'], famous: 'Skyla — the Jet Badge leader, soaring, fearless, and endlessly ambitious.', color: '#a890f0' },
 };
 
-async function fetchClassification(answers) {
-  const res = await fetch(`${API_BASE_URL}/classify`, {
+async function fetchClassification(apiBaseUrl, answers) {
+  const res = await fetch(`${apiBaseUrl}/classify`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ answers }),
@@ -72,7 +74,12 @@ async function fetchClassification(answers) {
   return res.json();
 }
 
-export default function Quiz() {
+export default function Quiz({ apiBaseUrl }) {
+  const API_BASE_URL =
+    normalizeBaseUrl(apiBaseUrl) ||
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_API_URL) ||
+    'http://localhost:8080';
+
   const [screen, setScreen] = useState('intro');
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -97,7 +104,7 @@ export default function Quiz() {
 
     setSubmitting(true);
     try {
-      const data = await fetchClassification(newAnswers);
+      const data = await fetchClassification(API_BASE_URL, newAnswers);
       const pokemonType = data?.type;
       if (!pokemonType || !results[pokemonType]) {
         throw new Error(`Unknown type from server: ${pokemonType}`);
