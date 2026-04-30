@@ -18,7 +18,7 @@ def cosine_similarity(vector, vectors):
     return dot_products / norms
 
 
-def rank_types_by_similarity(new_vector, vectors, df):
+def rank_types_by_weighted_similarity(new_vector, vectors, df):
     cosine_similarities = cosine_similarity(new_vector, vectors)
 
     type_vectors = {}
@@ -38,18 +38,45 @@ def rank_types_by_similarity(new_vector, vectors, df):
     return ranking
 
 
+def rank_types_by_closest_similarity(new_vector, vectors, df):
+    cosine_similarities = cosine_similarity(new_vector, vectors)
+    closest_leader = [
+        vector for vector in cosine_similarities if vector == max(cosine_similarities)]
+    closest_leader.replace({
+        -1: "Strongly Disagree",
+        -0.5: "Somewhat Disagree",
+        0: "Neutral",
+        0.5: "Somewhat Agree",
+        1: "Strongly Agree"
+    })
+    closest_leader = df[df.drop("Leader", "Type") == closest_leader]
+    return closest_leader[['Leader', 'Type']]
+
+
+def rank_types(new_vector, vectors, df, method="weighted"):
+    match method:
+        case "weighted":
+            return rank_types_by_weighted_similarity(new_vector, vectors, df)
+        case "closest":
+            return rank_types_by_closest_similarity(new_vector, vectors, df)
+        case _:
+            raise Exception("Invalid method")
+
+
 def build_results_map(*, df: pd.DataFrame, vectors: np.ndarray) -> dict[str, str]:
     """Build a mapping from answer-vectors -> top-ranked type.
 
     Kept as a function so importing this module doesn't trigger expensive work.
     """
-    all_possible_vectors = list(combinations_with_replacement(mapping.values(), 15))
-    all_possible_vectors = [np.array(vector) for vector in all_possible_vectors]
+    all_possible_vectors = list(
+        combinations_with_replacement(mapping.values(), 15))
+    all_possible_vectors = [np.array(vector)
+                            for vector in all_possible_vectors]
 
     results_map: dict[str, str] = {}
     for vector in all_possible_vectors:
         key = ",".join(map(str, vector))
-        ranking = rank_types_by_similarity(vector, vectors, df)
+        ranking = rank_types_by_weighted_similarity(vector, vectors, df)
         results_map[key] = str(ranking.index[0])
 
     return results_map
