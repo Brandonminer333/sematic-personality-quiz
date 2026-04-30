@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PcaPlot from '@/components/PcaPlot';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || 'http://localhost:8080';
@@ -101,7 +102,11 @@ export default function Quiz() {
       if (!pokemonType || !results[pokemonType]) {
         throw new Error(`Unknown type from server: ${pokemonType}`);
       }
-      setResultData({ result: results[pokemonType] });
+      setResultData({
+        result: results[pokemonType],
+        typeKey: pokemonType,
+        projection: data?.projection ?? null,
+      });
       setScreen('result');
     } catch (err) {
       console.error('Error:', err);
@@ -217,6 +222,13 @@ export default function Quiz() {
               <div className="famous-label">Similar to</div>
               <div className="famous-name">{data.famous}</div>
             </div>
+
+            {resultData?.projection && (
+              <PcaPlot
+                projection={resultData.projection}
+                userType={resultData.typeKey}
+              />
+            )}
 
             <button className="restart-btn" onClick={restart}>RETAKE QUIZ ▶</button>
           </div>

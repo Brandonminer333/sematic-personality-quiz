@@ -22,7 +22,9 @@ from api.classifier import (
     ReferenceData,
     classify,
     cosine_similarity,
+    fit_pca_model,
     load_reference_data,
+    project_vector,
     rank_types,
 )
 
@@ -116,6 +118,43 @@ def test_classify_endpoint_returns_top_type(client: TestClient):
     assert body["type"] == "Fire"
     assert [entry["type"] for entry in body["ranking"]] == ["Fire", "Water"]
     assert body["ranking"][0]["score"] >= body["ranking"][1]["score"]
+
+
+def test_classify_endpoint_includes_pca_projection(client: TestClient):
+    """The response carries a 3D projection of the user and every leader,
+    so the frontend can render the personality map without a second request."""
+    r = client.post("/classify", json={"answers": [1.0] * 15})
+    assert r.status_code == 200
+    projection = r.json()["projection"]
+
+    assert set(projection["user"]) == {"x", "y", "z"}
+    assert all(isinstance(projection["user"][k], float) for k in ("x", "y", "z"))
+
+    leaders = projection["leaders"]
+    assert len(leaders) == 4  # matches _tiny_reference()
+    leader_names = {entry["name"] for entry in leaders}
+    assert leader_names == {"A", "B", "C", "D"}
+    for entry in leaders:
+        assert entry["type"] in {"Fire", "Water"}
+        for k in ("x", "y", "z"):
+            assert isinstance(entry[k], float)
+
+
+def test_pca_model_projects_leaders_consistently():
+    ref = _tiny_reference()
+    model = fit_pca_model(ref)
+
+    assert model.components.shape == (3, 15)
+    assert model.leader_projections.shape == (4, 3)
+
+    # Projecting each leader vector through `project_vector` must reproduce
+    # the cached `leader_projections` (up to FP noise).
+    for i, vec in enumerate(ref.vectors):
+        np.testing.assert_allclose(
+            project_vector(model, vec),
+            model.leader_projections[i],
+            atol=1e-9,
+        )
 
 
 def test_classify_endpoint_rejects_wrong_length(client: TestClient):

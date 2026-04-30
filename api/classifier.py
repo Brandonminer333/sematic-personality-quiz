@@ -112,3 +112,59 @@ def classify(answer_vector: np.ndarray, ref: ReferenceData) -> tuple[str, list[t
     """Return (top_type, full_ranking)."""
     ranking = rank_types(answer_vector, ref)
     return ranking[0][0], ranking
+
+
+@dataclass(frozen=True)
+class PCAModel:
+    """3-component PCA fit on the reference leader vectors.
+
+    We fit once at startup and project users on each request, instead of
+    re-fitting for every quiz submission. That keeps the projection axes
+    stable across users (the "type space" is the same map for everyone)
+    and saves ~O(n*d) work per request.
+    """
+
+    mean: np.ndarray  # shape (d,)
+    components: np.ndarray  # shape (3, d)
+    leader_projections: np.ndarray  # shape (n, 3)
+    leaders: list[str]
+    types: np.ndarray  # shape (n,)
+
+
+def fit_pca_model(ref: ReferenceData, n_components: int = 3) -> PCAModel:
+    """Fit a PCA on `ref.vectors` via mean-centering + thin SVD.
+
+    Equivalent to `sklearn.decomposition.PCA(n_components).fit_transform`,
+    but with no extra dependency. Falls back gracefully when there are
+    fewer rows than requested components by zero-padding the missing axes.
+    """
+    if ref.vectors.size == 0:
+        raise ValueError("Cannot fit PCA on an empty reference set")
+
+    mean = ref.vectors.mean(axis=0)
+    centered = ref.vectors - mean
+
+    # Thin SVD: rows of Vt are the principal axes ordered by descending
+    # singular value, matching sklearn's convention.
+    _, _, vt = np.linalg.svd(centered, full_matrices=False)
+
+    available = vt.shape[0]
+    if available >= n_components:
+        components = vt[:n_components]
+    else:
+        padding = np.zeros((n_components - available, vt.shape[1]))
+        components = np.vstack([vt, padding])
+
+    leader_projections = centered @ components.T
+    return PCAModel(
+        mean=mean,
+        components=components,
+        leader_projections=leader_projections,
+        leaders=list(ref.leaders),
+        types=ref.types.copy(),
+    )
+
+
+def project_vector(model: PCAModel, vector: np.ndarray) -> np.ndarray:
+    """Project a single answer vector into the model's PCA basis."""
+    return (vector - model.mean) @ model.components.T
