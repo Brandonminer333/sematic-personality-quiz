@@ -34,6 +34,9 @@ data_sythesizer/
 conftest.py
 pytest.ini
 
+# API image: recipe only — not needed at runtime inside ./api
+api/Dockerfile
+
 # Misc
 .DS_Store
 .env

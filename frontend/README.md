@@ -6,7 +6,7 @@ A [Next.js](https://nextjs.org/) (App Router) app that hosts the gym-leader pers
 
 ```bash
 npm install
-cp .env.example .env.local   # points NEXT_PUBLIC_API_URL at http://localhost:8080
+cp .env.example .env.local   # set CLOUD_RUN_URI (see .env.example)
 npm run dev
 ```
 
@@ -33,7 +33,7 @@ When importing the repo into Vercel:
 - **Framework Preset:** Next.js (auto-detected)
 - **Build Command:** `next build` (default)
 - **Install Command:** `npm install` (default)
-- **Environment Variables:** set `NEXT_PUBLIC_API_URL` to the Cloud Run URL of the classifier backend (no trailing slash). This must be set at build time — `NEXT_PUBLIC_*` values are baked into the static bundle.
+- **Environment Variables:** set **`CLOUD_RUN_URI`** to the Cloud Run base URL of the classifier (no trailing slash). The home page reads it on the server and passes it into the client quiz. Optionally set **`NEXT_PUBLIC_API_URL`** to the same value if you want a client-visible fallback; `NEXT_PUBLIC_*` is inlined at build time.
 
 No `vercel.json` is required.
 
@@ -51,4 +51,4 @@ frontend/
 └── public/                 # static assets (favicon, icons)
 ```
 
-The classifier itself lives in `backend/` (FastAPI on Cloud Run). On submit, the quiz POSTs the 15-answer vector to `${NEXT_PUBLIC_API_URL}/classify` and renders the returned type.
+The classifier is the FastAPI app in `../api/` (Cloud Run in production). On submit, the quiz POSTs the 15-answer vector to `{apiBaseUrl}/classify` and renders the returned type.

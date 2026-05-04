@@ -1,31 +1,18 @@
-# syntax=docker/dockerfile:1.7
-
-FROM python:3.12-slim AS base
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+# Dockerfile for the API
+# Build from repository root: docker build -f api/Dockerfile -t personality-quiz-api .
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install runtime deps first so they cache independently of source changes.
-# Build context is expected to be the repo root (so `api/` is visible here).
-COPY api/requirements.txt /app/api/requirements.txt
-RUN pip install --no-cache-dir -r /app/api/requirements.txt
+# Slim, pinned API deps (avoid repo-root requirements.txt).
+COPY api/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Copy the api package (code + bundled reference CSV under api/data/).
-COPY api /app/api
+# Keep the `api` package so relative imports (`from .classifier`) work.
+COPY api/ ./api/
 
-# Run as a non-root user. Cloud Run doesn't require this, but it's good hygiene
-# and prevents accidental writes inside the read-only container filesystem.
-RUN useradd --create-home --shell /usr/sbin/nologin appuser \
-    && chown -R appuser:appuser /app
-USER appuser
+# Cloud Run sets PORT; local runs default to 8080.
+ENV PORT=8080
 
-# Cloud Run injects $PORT (default 8080). EXPOSE is informational only.
-EXPOSE 8080
-
-# Use a single uvicorn worker: Cloud Run already scales by spawning instances,
-# and multi-worker setups duplicate the in-memory reference data per worker.
-CMD ["sh", "-c", "exec uvicorn api.api:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1"]
+CMD ["sh", "-c", "exec uvicorn api.api:app --host 0.0.0.0 --port ${PORT}"]

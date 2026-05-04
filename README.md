@@ -101,7 +101,7 @@ lock down CORS in prod; it defaults to `*` for easy local dev.
 
 The web UI lives in [`frontend/`](./frontend). See [`frontend/README.md`](./frontend/README.md) for run/test instructions.
 
-Set `NEXT_PUBLIC_API_URL` to the Cloud Run URL on Vercel (and to `http://localhost:8080` locally). See [`frontend/.env.example`](./frontend/.env.example).
+Set `CLOUD_RUN_URI` to the Cloud Run base URL on Vercel (and in `frontend/.env.local` for local dev). See [`frontend/.env.example`](./frontend/.env.example).
 
 Deploy by importing the repo into Vercel and setting **Root Directory** to `frontend`.
 
