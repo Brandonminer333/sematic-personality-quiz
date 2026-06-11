@@ -83,7 +83,9 @@ def cosine_similarity(vector: np.ndarray, vectors: np.ndarray) -> np.ndarray:
     """
     dot_products = vectors @ vector
     norms = np.linalg.norm(vectors, axis=1) * np.linalg.norm(vector)
-    with np.errstate(divide="ignore", invalid="ignore"):
+    with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
+        dot_products = vectors @ vector
+        norms = np.linalg.norm(vectors, axis=1) * np.linalg.norm(vector)
         sims = dot_products / norms
     return np.nan_to_num(sims, nan=0.0, posinf=0.0, neginf=0.0)
 
@@ -112,6 +114,19 @@ def classify(answer_vector: np.ndarray, ref: ReferenceData) -> tuple[str, list[t
     """Return (top_type, full_ranking)."""
     ranking = rank_types(answer_vector, ref)
     return ranking[0][0], ranking
+
+
+def closest_character(
+    answer_vector: np.ndarray, ref: ReferenceData
+) -> tuple[str, str, float]:
+    """Return (character_name, class_name, cosine_score) for the nearest reference row."""
+    sims = cosine_similarity(answer_vector, ref.vectors)
+    idx = int(np.argmax(sims))
+    return (
+        ref.leaders[idx],
+        str(ref.types[idx]),
+        float(sims[idx]),
+    )
 
 
 @dataclass(frozen=True)

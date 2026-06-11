@@ -4,7 +4,7 @@ An interactive personality quiz that maps the user's answers onto a vector space
 
 ## Architecture
 
-```
+```plaintext
 sematic-personality-quiz/
 ├── frontend/                  # Next.js (App Router) — Vercel-hosted UI shell
 ├── api/                       # FastAPI service — classifier (Cloud Run)

@@ -1,15 +1,27 @@
 import './globals.css';
+import { ApiProvider } from '@/components/ApiProvider';
+import { normalizeBaseUrl } from '@/lib/apiBase';
 
 export const metadata = {
-  title: 'What Gym Leader Are You?',
-  description:
-    'A semantic personality quiz that matches you to a Pokémon gym leader type.',
+  title: 'Personality Quiz',
+  description: 'A personality quiz built from fictional class systems.',
   icons: {
     icon: '/favicon.svg',
   },
 };
 
+function getClassifierBaseUrl() {
+  return normalizeBaseUrl(
+    process.env.CLOUD_RUN_URI ||
+      process.env.CLOUD_RUN_URL ||
+      process.env.cloud_run_url ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      null,
+  );
+}
+
 export default function RootLayout({ children }) {
+  const apiBaseUrl = getClassifierBaseUrl();
   return (
     <html lang="en">
       <head>
@@ -24,7 +36,9 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ApiProvider apiBaseUrl={apiBaseUrl}>{children}</ApiProvider>
+      </body>
     </html>
   );
 }

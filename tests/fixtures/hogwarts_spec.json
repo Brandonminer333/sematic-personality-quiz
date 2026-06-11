@@ -1,0 +1,10 @@
+{
+  "franchise_name": "Harry Potter",
+  "wiki_base_url": "https://harrypotter.fandom.com/wiki/",
+  "classes": ["Gryffindor", "Slytherin"],
+  "characters": [
+    {"name": "Harry Potter", "class": "Gryffindor"},
+    {"name": "Draco Malfoy", "class": "Slytherin"}
+  ],
+  "source_prompt": "Hogwarts houses from Harry Potter"
+}

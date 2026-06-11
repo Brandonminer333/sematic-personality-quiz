@@ -1,43 +1,20 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { colorForLabel } from '@/lib/colors';
 
 const PLOTLY_CDN = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
-
-const TYPE_COLORS = {
-  Normal: '#A8A77A',
-  Fire: '#EE8130',
-  Water: '#6390F0',
-  Electric: '#F7D02C',
-  Grass: '#7AC74C',
-  Ice: '#96D9D6',
-  Fighting: '#C22E28',
-  Poison: '#A33EA1',
-  Ground: '#E2BF65',
-  Flying: '#A98FF3',
-  Psychic: '#F95587',
-  Bug: '#A6B91A',
-  Rock: '#B6A136',
-  Ghost: '#735797',
-  Dragon: '#6F35FC',
-  Dark: '#705746',
-  Steel: '#B7B7CE',
-  Fairy: '#D685AD',
-};
-
 const FALLBACK_COLOR = '#cccccc';
 
 let plotlyPromise = null;
 
-// Cache the CDN load across component mounts so retaking the quiz doesn't
-// re-download Plotly. Resolves to the global `Plotly` object.
 function loadPlotly() {
   if (typeof window === 'undefined') return Promise.reject(new Error('SSR'));
   if (window.Plotly) return Promise.resolve(window.Plotly);
   if (plotlyPromise) return plotlyPromise;
 
   plotlyPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[data-plotly-cdn="true"]`);
+    const existing = document.querySelector('script[data-plotly-cdn="true"]');
     if (existing) {
       existing.addEventListener('load', () => resolve(window.Plotly));
       existing.addEventListener('error', reject);
@@ -61,9 +38,8 @@ function buildTraces({ leaders, user, userType }) {
   const traces = [];
   const seenTypes = new Set();
 
-  // One vector trace per leader so each can have its own color/legend group.
   for (const leader of leaders) {
-    const color = TYPE_COLORS[leader.type] ?? FALLBACK_COLOR;
+    const color = colorForLabel(leader.type) ?? FALLBACK_COLOR;
     const showInLegend = !seenTypes.has(leader.type);
     seenTypes.add(leader.type);
 
@@ -88,14 +64,14 @@ function buildTraces({ leaders, user, userType }) {
       y: [leader.y],
       z: [leader.z],
       marker: { size: 5, color, opacity: 0.9 },
-      hovertemplate: `<b>${leader.name}</b><br>${leader.type} type<extra></extra>`,
+      hovertemplate: `<b>${leader.name}</b><br>${leader.type}<extra></extra>`,
       name: leader.type,
       legendgroup: leader.type,
       showlegend: false,
     });
   }
 
-  const userColor = TYPE_COLORS[userType] ?? '#ffffff';
+  const userColor = colorForLabel(userType) ?? '#ffffff';
 
   traces.push({
     type: 'scatter3d',
@@ -125,7 +101,7 @@ function buildTraces({ leaders, user, userType }) {
     text: ['You'],
     textposition: 'top center',
     textfont: { color: '#ffffff', size: 13, family: 'Nunito, sans-serif' },
-    hovertemplate: `<b>You</b><br>${userType} type<extra></extra>`,
+    hovertemplate: `<b>You</b><br>${userType}<extra></extra>`,
     name: 'You',
     legendgroup: 'user',
     showlegend: false,
@@ -238,10 +214,10 @@ export default function PcaPlot({ projection, userType }) {
     <div className="pca-plot">
       <div className="pca-plot__header">
         <div className="pca-plot__label">YOUR POSITION</div>
-        <div className="pca-plot__title">In the Gym Leader Map</div>
+        <div className="pca-plot__title">Character map</div>
         <p className="pca-plot__subtitle">
-          A 3D projection of every gym leader&apos;s answer pattern. Your vector is
-          highlighted — the leaders closest to it think most like you.
+          A 3D projection of each character&apos;s answer pattern. Your vector is
+          highlighted — characters closest to it think most like you.
         </p>
       </div>
       <div ref={containerRef} className="pca-plot__canvas" />

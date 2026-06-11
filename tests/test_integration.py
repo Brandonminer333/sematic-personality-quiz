@@ -21,12 +21,15 @@ import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
 import pytest
 import requests
 from playwright.sync_api import expect
+
+pytestmark = pytest.mark.application
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = REPO_ROOT / "frontend"
@@ -82,6 +85,7 @@ def _terminate(proc: subprocess.Popen) -> None:
 def backend_server() -> str:
     """Boot the FastAPI backend on a free port; yield the base URL."""
     port = _free_port()
+    quizzes_dir = tempfile.mkdtemp(prefix="quiz-e2e-")
     proc = subprocess.Popen(
         [
             sys.executable,
@@ -94,7 +98,12 @@ def backend_server() -> str:
             str(port),
         ],
         cwd=str(REPO_ROOT),
-        env={**os.environ, "PYTHONPATH": str(REPO_ROOT)},
+        env={
+            **os.environ,
+            "PYTHONPATH": str(REPO_ROOT),
+            "FAKE_QUIZ_SPEC": "1",
+            "QUIZZES_OUT_DIR": quizzes_dir,
+        },
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         start_new_session=True,
@@ -118,12 +127,24 @@ def frontend_server(backend_server: str) -> str:
             f"Run `npm install` inside {FRONTEND_DIR}."
         )
 
-    # NEXT_PUBLIC_* values are baked at build time, so the build needs to know
-    # which backend the frontend should call.
+    # Point the frontend at the test backend deterministically. `page.jsx`
+    # resolves the classifier URL as CLOUD_RUN_URI > CLOUD_RUN_URL > NEXT_PUBLIC_API_URL,
+    # and a repo-level `.env` (loaded via load_dotenv() at import time) can leak a
+    # real CLOUD_RUN_URI into os.environ — which would otherwise shadow the value
+    # below and send the browser to production. Set the top-priority var and clear
+    # the lower-priority Cloud Run vars so the test is hermetic.
+    # NEXT_PUBLIC_* values are baked at build time, so the build needs them too.
+    test_backend_env = {
+        "CLOUD_RUN_URI": backend_server,
+        "CLOUD_RUN_URL": "",
+        "cloud_run_url": "",
+        "NEXT_PUBLIC_API_URL": backend_server,
+        "NEXT_PUBLIC_CREATE_MIN_WAIT_MS": "0",
+    }
     build_env = {
         **os.environ,
         "BROWSER": "none",
-        "NEXT_PUBLIC_API_URL": backend_server,
+        **test_backend_env,
     }
     build = subprocess.run(
         ["npm", "run", "build"],
@@ -143,7 +164,7 @@ def frontend_server(backend_server: str) -> str:
         **os.environ,
         "PORT": str(port),
         "BROWSER": "none",
-        "NEXT_PUBLIC_API_URL": backend_server,
+        **test_backend_env,
     }
     proc = subprocess.Popen(
         ["npm", "run", "start"],
@@ -163,19 +184,22 @@ def frontend_server(backend_server: str) -> str:
 
 
 def test_full_quiz_flow_renders_result(frontend_server: str, page) -> None:
-    """Walk all 15 questions and verify a result card renders."""
+    """Walk prompt → quiz → results and verify a result card renders."""
     page.goto(f"{frontend_server}/", wait_until="networkidle")
 
-    start_btn = page.get_by_text("START QUIZ ▶")
-    expect(start_btn).to_be_visible()
-    start_btn.click()
+    page.locator("#quiz-prompt").fill("Hogwarts houses")
+    create_btn = page.get_by_text("CREATE QUIZ ▶")
+    expect(create_btn).to_be_visible()
+    create_btn.click()
+
+    expect(page.get_by_text("Creating your quiz…")).to_be_visible()
+    page.wait_for_url("**/quiz/**", timeout=SERVER_READY_TIMEOUT_S * 1000)
 
     for i in range(1, 16):
         expect(page.get_by_text(f"QUESTION {i} OF 15")).to_be_visible()
         page.locator(".option-btn").first.click()
         page.locator(".next-btn").click()
 
+    page.wait_for_url("**/results", timeout=SERVER_READY_TIMEOUT_S * 1000)
     expect(page.locator(".result-card")).to_be_visible()
-    expect(page.locator(".result-headline")).not_to_be_empty()
     expect(page.locator(".result-type")).not_to_be_empty()
-    expect(page.locator(".type-tag")).not_to_be_empty()

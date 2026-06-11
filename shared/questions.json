@@ -1,0 +1,26 @@
+{
+  "questions": [
+    "I feel most like myself when I'm around other people.",
+    "I often take the lead in group situations without being asked.",
+    "After a long social event, I need time alone to feel like myself again.",
+    "I would rather spend years perfecting one craft than spread my energy across many interests.",
+    "I tend to prepare thoroughly before starting something new.",
+    "I lose interest in a project once the hardest problem is solved.",
+    "When something goes wrong, my first instinct is to do something about it rather than sit with the feeling.",
+    "I find it easy to stay calm when the people around me are stressed.",
+    "I tend to take criticism personally, even when I know it isn't meant that way.",
+    "I find comfort in a predictable daily routine.",
+    "I'm drawn to situations where the outcome isn't guaranteed.",
+    "I often seek out experiences that most people in my life would consider unusual.",
+    "I often think through problems by talking or writing rather than sitting in silence.",
+    "I notice details in my environment that other people seem to walk past.",
+    "I prefer finding a reliable method and sticking to it over experimenting with new approaches."
+  ],
+  "likert_options": [
+    "strongly disagree",
+    "somewhat disagree",
+    "neutral",
+    "somewhat agree",
+    "strongly agree"
+  ]
+}

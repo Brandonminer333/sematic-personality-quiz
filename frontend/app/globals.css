@@ -454,3 +454,65 @@ header {
 }
 
 .hidden { display: none; }
+
+.prompt-label {
+  display: block;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.prompt-input {
+  width: 100%;
+  background: #12121f;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 14px 16px;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.prompt-meta {
+  text-align: right;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.ranking-list {
+  margin: 24px 0;
+  text-align: left;
+}
+
+.ranking-items {
+  list-style: none;
+  margin-top: 12px;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+}
+
+.ranking-score {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 0 #a07800;
+}
