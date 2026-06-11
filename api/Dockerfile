@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Keep the `api` package so relative imports (`from .classifier`) work.
 COPY api/ ./api/
 
+# Roleplay prompts load quiz text from shared/questions.json at runtime.
+COPY shared/ ./shared/
+
 # Cloud Run sets PORT; local runs default to 8080.
 ENV PORT=8080
 
