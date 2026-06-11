@@ -31,7 +31,7 @@ class StageLLM:
         self.stage2 = stage2
         self.calls = 0
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, **kwargs) -> str:
         self.calls += 1
         if self.calls == 1:
             return json.dumps(self.stage1)

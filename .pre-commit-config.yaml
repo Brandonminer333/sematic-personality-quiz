@@ -1,0 +1,37 @@
+# Install: pip install pre-commit && pre-commit install
+# Run all hooks manually: pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (unit + functional; no application E2E)
+        entry: pytest -m "not application" --ignore=tests/test_integration.py -p no:cacheprovider
+        language: python
+        # Local hooks install deps from pre-commit's cache dir, so -r requirements-test.txt
+        # does not resolve. Keep in sync with requirements-test.txt / api/requirements.txt.
+        additional_dependencies:
+          - pytest==9.0.3
+          - fastapi==0.115.5
+          - uvicorn[standard]==0.32.1
+          - numpy==2.1.3
+          - pandas==2.2.3
+          - pydantic==2.10.3
+          - requests==2.32.3
+          - beautifulsoup4==4.12.3
+          - google-genai==2.8.0
+          - python-dotenv==1.0.1
+        files: ^(api/|tests/|conftest\.py|pytest\.ini|requirements.*\.txt|shared/)
+        pass_filenames: false
+        always_run: false

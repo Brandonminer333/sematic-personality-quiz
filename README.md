@@ -113,24 +113,44 @@ pip install -r requirements.txt
 pytest
 ```
 
-## Pre-commit hook
+## Pre-commit
 
-Runs an end-to-end smoke test (boots the FastAPI backend + the Next.js frontend, drives the full quiz flow with Playwright, asserts a result card renders) before every commit. The hook is skipped automatically when no relevant files are staged.
+Hooks run on staged changes: basic file hygiene plus `pytest -m "not application"` when
+`api/`, `tests/`, or related config changes (no Playwright / full-stack E2E).
 
 One-time setup:
 
 ```bash
 pip install -r requirements.txt
-playwright install chromium
-(cd frontend && npm install)
-./scripts/install-git-hooks.sh
+pre-commit install
 ```
 
-Run the integration test directly any time:
+Run hooks manually:
 
 ```bash
-pytest tests/test_integration.py
+pre-commit run --all-files
 ```
+
+Full application E2E (backend + Next.js + Playwright):
+
+```bash
+pip install playwright pytest-playwright
+playwright install chromium
+(cd frontend && npm install && npm run build)
+pytest -m application
+```
+
+## CI / API deploy
+
+Pushes to `main` that touch the API or tests run [`.github/workflows/deploy-api.yml`](.github/workflows/deploy-api.yml):
+
+1. `pre-commit run --all-files`
+2. `pytest -m "not application"`
+3. Build → push to Artifact Registry → deploy Cloud Run
+
+Add a GitHub secret `GCP_SA_KEY` (service account JSON with Artifact Registry Writer,
+Cloud Run Admin, and Service Account User). Optional repo variables: `GCP_PROJECT_ID`,
+`GCP_REGION`, `AR_REPOSITORY`, `IMAGE_NAME`, `CLOUD_RUN_SERVICE`.
 
 ## Roadmap
 

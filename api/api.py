@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import os
-import time
 import uuid
 from collections.abc import Callable
 from pathlib import Path
@@ -34,27 +32,7 @@ from .classifier import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEBUG_LOG_PATH = REPO_ROOT / ".cursor" / "debug-951489.log"
 load_dotenv(REPO_ROOT / ".env")
-
-
-def _agent_log(message: str, data: dict, hypothesis_id: str) -> None:
-    # #region agent log
-    try:
-        payload = {
-            "sessionId": "951489",
-            "timestamp": int(time.time() * 1000),
-            "location": "api/api.py",
-            "message": message,
-            "data": data,
-            "hypothesisId": hypothesis_id,
-        }
-        DEBUG_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with DEBUG_LOG_PATH.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(payload) + "\n")
-    except OSError:
-        pass
-    # #endregion
 
 DEFAULT_REFERENCE_CSV = Path(__file__).parent / "data" / "gym_leaders.csv"
 PRESET_QUIZ_ID = "preset"
@@ -247,17 +225,7 @@ def _wait_for_ready_job(store: QuizJobStore, quiz_id: str):
         return job
     if job.status == "failed":
         detail = job.error or "quiz generation failed"
-        _agent_log(
-            "quiz_results blocked: generation failed",
-            {"quiz_id": quiz_id, "detail": detail[:500]},
-            "H1",
-        )
         raise HTTPException(status_code=422, detail=detail)
-    _agent_log(
-        "quiz_results still generating",
-        {"quiz_id": quiz_id, "progress": job.progress_completed},
-        "H2",
-    )
     return JSONResponse(
         status_code=202,
         content=_job_status_payload(job).model_dump(),
@@ -305,13 +273,7 @@ def create_app(
     @app.post("/quizzes", response_model=CreateQuizResponse, status_code=202)
     def create_quiz(payload: CreateQuizRequest) -> CreateQuizResponse:
         """Stages 1–2 synchronously, then start async generation (stages 3–5)."""
-        started = time.monotonic()
         prompt = payload.prompt.strip()
-        _agent_log(
-            "create_quiz started",
-            {"prompt_len": len(prompt), "fake_mode": os.getenv("FAKE_QUIZ_SPEC")},
-            "H3",
-        )
         try:
             if spec_builder is not None:
                 spec = spec_builder(prompt, None)
@@ -342,15 +304,6 @@ def create_app(
             ) from exc
 
         quiz_id = uuid.uuid4().hex
-        _agent_log(
-            "create_quiz spec ready",
-            {
-                "quiz_id": quiz_id,
-                "elapsed_ms": int((time.monotonic() - started) * 1000),
-                "character_count": len(spec.characters),
-            },
-            "H3",
-        )
         store.create(quiz_id=quiz_id, spec=spec)
         start_generation_in_background(
             quiz_id,
@@ -377,15 +330,6 @@ def create_app(
     def quiz_results(payload: QuizResultsRequest):
         answer_vector = np.asarray(payload.answers, dtype=np.float64)
         quiz_id = payload.quiz_id
-        _agent_log(
-            "quiz_results request",
-            {
-                "quiz_id": quiz_id,
-                "answer_count": len(payload.answers),
-                "answer_sample": payload.answers[:3],
-            },
-            "H2",
-        )
 
         if quiz_id is None or quiz_id == PRESET_QUIZ_ID:
             try:

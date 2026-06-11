@@ -1,0 +1,3 @@
+# CI + pre-commit pytest hook (excludes Playwright / application E2E stack).
+-r api/requirements.txt
+pytest==9.0.3

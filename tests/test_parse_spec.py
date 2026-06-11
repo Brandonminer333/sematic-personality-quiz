@@ -20,7 +20,7 @@ class FakeLLM:
         self.payload = payload
         self.prompts: list[str] = []
 
-    def generate_text(self, prompt: str) -> str:
+    def generate_text(self, prompt: str, **kwargs) -> str:
         self.prompts.append(prompt)
         return json.dumps(self.payload)
 
