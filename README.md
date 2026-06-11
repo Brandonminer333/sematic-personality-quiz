@@ -153,7 +153,7 @@ Add **repository secrets** under Settings → Secrets and variables → Actions:
 - **`GCP_SA_KEY`** (required) — full service account JSON with Artifact Registry Writer,
   Cloud Run Admin, and Service Account User
 - Optional: `GCP_PROJECT_ID`, `GCP_REGION`, `AR_REPOSITORY`, `IMAGE_NAME`,
-  `CLOUD_RUN_SERVICE`, `DEPLOY_ENVIRONMENT` (defaults match this project's GCP setup)
+  `CLOUD_RUN_SERVICE` (defaults match this project's GCP setup)
 
 ## Roadmap
 

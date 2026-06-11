@@ -5,8 +5,7 @@
 #                Service Account User)
 #
 # Optional repository secrets (defaults shown):
-#   GCP_PROJECT_ID, GCP_REGION, AR_REPOSITORY, IMAGE_NAME, CLOUD_RUN_SERVICE,
-#   DEPLOY_ENVIRONMENT (default: github-actions)
+#   GCP_PROJECT_ID, GCP_REGION, AR_REPOSITORY, IMAGE_NAME, CLOUD_RUN_SERVICE
 
 name: CI and Deploy API
 
@@ -55,7 +54,6 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    environment: ${{ secrets.DEPLOY_ENVIRONMENT || 'github-actions' }}
     env:
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'personality-quiz-492907' }}
       GCP_REGION: ${{ secrets.GCP_REGION || 'us-west1' }}
