@@ -3,6 +3,7 @@
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   GCP_SA_KEY — full service account JSON (Artifact Registry Writer, Cloud Run Admin,
 #                Service Account User)
+#   GEMINI_API_KEY — Gemini API key (injected into Cloud Run on each deploy)
 #
 # Optional repository secrets (defaults shown):
 #   GCP_PROJECT_ID, GCP_REGION, AR_REPOSITORY, IMAGE_NAME, CLOUD_RUN_SERVICE,
@@ -67,12 +68,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify GCP_SA_KEY secret
+      - name: Verify deploy secrets
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           if [ -z "$GCP_SA_KEY" ]; then
             echo "::error::GCP_SA_KEY is missing or empty."
+            echo "Add it under Settings → Secrets and variables → Actions → Repository secrets."
+            exit 1
+          fi
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::GEMINI_API_KEY is missing or empty."
             echo "Add it under Settings → Secrets and variables → Actions → Repository secrets."
             exit 1
           fi
@@ -98,6 +105,8 @@ jobs:
       - name: Deploy to Cloud Run
         env:
           IMAGE: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GCS_QUIZZES_BUCKET: ${{ env.GCS_QUIZZES_BUCKET }}
         run: |
           DEPLOY_ARGS=(
             --image "${IMAGE}"
@@ -106,7 +115,10 @@ jobs:
             --platform managed
             --quiet
           )
-          if [ -n "${{ env.GCS_QUIZZES_BUCKET }}" ]; then
-            DEPLOY_ARGS+=(--set-env-vars "GCS_QUIZZES_BUCKET=${{ env.GCS_QUIZZES_BUCKET }}")
+          ENV_UPDATES=("GEMINI_API_KEY=${GEMINI_API_KEY}")
+          if [ -n "$GCS_QUIZZES_BUCKET" ]; then
+            ENV_UPDATES+=("GCS_QUIZZES_BUCKET=${GCS_QUIZZES_BUCKET}")
           fi
+          IFS=,
+          DEPLOY_ARGS+=(--update-env-vars "${ENV_UPDATES[*]}")
           gcloud run deploy "${{ env.CLOUD_RUN_SERVICE }}" "${DEPLOY_ARGS[@]}"

@@ -196,6 +196,8 @@ Add **repository secrets** under Settings → Secrets and variables → Actions:
 
 - **`GCP_SA_KEY`** (required) — full service account JSON with Artifact Registry Writer,
   Cloud Run Admin, and Service Account User
+- **`GEMINI_API_KEY`** (required) — injected into Cloud Run on each deploy via
+  `--update-env-vars` (survives redeploys without manual console edits)
 - Optional: `GCP_PROJECT_ID`, `GCP_REGION`, `AR_REPOSITORY`, `IMAGE_NAME`,
   `CLOUD_RUN_SERVICE`, `GCS_QUIZZES_BUCKET` (defaults match this project's GCP setup)
 
