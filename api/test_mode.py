@@ -19,7 +19,7 @@ def fake_spec_builder(prompt: str, _llm) -> FranchiseSpec:
     )
 
 
-def instant_generation_runner(quiz_id, spec, *, store, out_dir=None, llm=None):
+def instant_generation_runner(quiz_id, spec, *, store, out_dir=None, llm=None, gcs_store=None):
     rows = [
         ReferenceRow("Harry Potter", "Gryffindor", ["strongly agree"] * 15),
         ReferenceRow("Draco Malfoy", "Slytherin", ["somewhat disagree"] * 15),

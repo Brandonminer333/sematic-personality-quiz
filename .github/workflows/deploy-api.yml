@@ -5,7 +5,8 @@
 #                Service Account User)
 #
 # Optional repository secrets (defaults shown):
-#   GCP_PROJECT_ID, GCP_REGION, AR_REPOSITORY, IMAGE_NAME, CLOUD_RUN_SERVICE
+#   GCP_PROJECT_ID, GCP_REGION, AR_REPOSITORY, IMAGE_NAME, CLOUD_RUN_SERVICE,
+#   GCS_QUIZZES_BUCKET
 
 name: CI and Deploy API
 
@@ -60,6 +61,7 @@ jobs:
       AR_REPOSITORY: ${{ secrets.AR_REPOSITORY || 'personality-quiz-api' }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME || 'personality-quiz-api' }}
       CLOUD_RUN_SERVICE: ${{ secrets.CLOUD_RUN_SERVICE || 'personality-quiz-api' }}
+      GCS_QUIZZES_BUCKET: ${{ secrets.GCS_QUIZZES_BUCKET }}
     permissions:
       contents: read
     steps:
@@ -97,9 +99,14 @@ jobs:
         env:
           IMAGE: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
-          gcloud run deploy "${{ env.CLOUD_RUN_SERVICE }}" \
-            --image "${IMAGE}" \
-            --region "${{ env.GCP_REGION }}" \
-            --project "${{ env.GCP_PROJECT_ID }}" \
-            --platform managed \
+          DEPLOY_ARGS=(
+            --image "${IMAGE}"
+            --region "${{ env.GCP_REGION }}"
+            --project "${{ env.GCP_PROJECT_ID }}"
+            --platform managed
             --quiet
+          )
+          if [ -n "${{ env.GCS_QUIZZES_BUCKET }}" ]; then
+            DEPLOY_ARGS+=(--set-env-vars "GCS_QUIZZES_BUCKET=${{ env.GCS_QUIZZES_BUCKET }}")
+          fi
+          gcloud run deploy "${{ env.CLOUD_RUN_SERVICE }}" "${DEPLOY_ARGS[@]}"

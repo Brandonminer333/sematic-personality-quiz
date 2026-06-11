@@ -19,6 +19,8 @@ from api.generation.discover_roster import build_franchise_spec_from_prompt
 from api.generation.models import FranchiseSpec
 from api.generation.quiz_jobs import QuizJobStore, get_default_job_store, start_generation_in_background
 from api.llm.client import GeminiRateLimitError, LLMClient
+from api.storage.quiz_resolver import resolve_quiz_job
+from api.storage.quiz_store import GcsQuizStore, default_cache_dir
 
 from .classifier import (
     PCAModel,
@@ -36,6 +38,8 @@ load_dotenv(REPO_ROOT / ".env")
 
 DEFAULT_REFERENCE_CSV = Path(__file__).parent / "data" / "gym_leaders.csv"
 PRESET_QUIZ_ID = "preset"
+
+MAX_PROMPT_LENGTH = 120
 def _gemini_api_key_configured() -> bool:
     key = os.getenv("GEMINI_API_KEY", "").strip()
     return bool(key) and key != "api_key"
@@ -216,9 +220,22 @@ def _job_status_payload(job) -> QuizStatusResponse:
     )
 
 
-def _wait_for_ready_job(store: QuizJobStore, quiz_id: str):
+def _wait_for_ready_job(
+    store: QuizJobStore,
+    quiz_id: str,
+    *,
+    out_dir: str | Path | None,
+    gcs_store: GcsQuizStore | None,
+    cache_dir: Path,
+):
     """Return the ready job or a 202 response without blocking the worker."""
-    job = store.get(quiz_id)
+    job = resolve_quiz_job(
+        store,
+        quiz_id,
+        out_dir=out_dir,
+        gcs_store=gcs_store,
+        cache_dir=cache_dir,
+    )
     if job is None:
         raise HTTPException(status_code=404, detail=f"quiz {quiz_id!r} not found")
     if job.status == "ready":
@@ -239,6 +256,8 @@ def create_app(
     spec_builder: Callable[[str, LLMClient | None], FranchiseSpec] | None = None,
     generation_runner: Callable[..., None] | None = None,
     quizzes_out_dir: str | Path | None = None,
+    gcs_store: GcsQuizStore | None = None,
+    cache_dir: str | Path | None = None,
 ) -> FastAPI:
     """Build a FastAPI app, optionally with injected dependencies (for tests)."""
     if reference is None:
@@ -247,6 +266,8 @@ def create_app(
 
     preset_pca = fit_pca_model(reference)
     store = job_store if job_store is not None else get_default_job_store()
+    quiz_gcs_store = gcs_store if gcs_store is not None else GcsQuizStore.from_env()
+    quiz_cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
 
     app = FastAPI(
         title="Semantic Personality Quiz",
@@ -275,6 +296,11 @@ def create_app(
         """Stages 1–2 synchronously, then start async generation (stages 3–5)."""
         prompt = payload.prompt.strip()
         try:
+            if len(prompt) > MAX_PROMPT_LENGTH:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"prompt is too long, must be less than {MAX_PROMPT_LENGTH} characters",
+                ) # TODO: Double check error handling
             if spec_builder is not None:
                 spec = spec_builder(prompt, None)
             else:
@@ -310,6 +336,7 @@ def create_app(
             spec,
             store=store,
             out_dir=quizzes_out_dir,
+            gcs_store=quiz_gcs_store,
             runner=generation_runner,
         )
         return CreateQuizResponse(
@@ -321,7 +348,13 @@ def create_app(
 
     @app.get("/quizzes/{quiz_id}", response_model=QuizStatusResponse)
     def get_quiz_status(quiz_id: str) -> QuizStatusResponse:
-        job = store.get(quiz_id)
+        job = resolve_quiz_job(
+            store,
+            quiz_id,
+            out_dir=quizzes_out_dir,
+            gcs_store=quiz_gcs_store,
+            cache_dir=quiz_cache_dir,
+        )
         if job is None:
             raise HTTPException(status_code=404, detail=f"quiz {quiz_id!r} not found")
         return _job_status_payload(job)
@@ -345,7 +378,13 @@ def create_app(
                     detail=f"classification failed: {exc}",
                 ) from exc
 
-        ready = _wait_for_ready_job(store, quiz_id)
+        ready = _wait_for_ready_job(
+            store,
+            quiz_id,
+            out_dir=quizzes_out_dir,
+            gcs_store=quiz_gcs_store,
+            cache_dir=quiz_cache_dir,
+        )
         if isinstance(ready, JSONResponse):
             return ready
 

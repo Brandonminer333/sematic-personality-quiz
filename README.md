@@ -1,3 +1,5 @@
+# WIP — Needs to be updated!!!
+
 # Semantic Personality Quiz
 
 An interactive personality quiz that maps the user's answers onto a vector space and finds their nearest **Pokémon gym leader type** (Fire, Water, Grass, etc.) by weighted cosine similarity. Gym leaders are used as a proxy: each leader canonically represents one type, and the LLM is prompted to embody that type's general personality rather than the specific character.
@@ -97,6 +99,48 @@ Cloud Run injects `$PORT`; the container listens on `0.0.0.0:$PORT` (default
 `8080`). Set `CORS_ALLOW_ORIGINS` to your Vercel domain (comma-separated) to
 lock down CORS in prod; it defaults to `*` for easy local dev.
 
+### Quiz storage (GCS)
+
+Generated quizzes are written under `quizzes/{quiz_id}/` in a GCS bucket so
+shareable `quiz_id` URLs survive Cloud Run restarts. Object layout:
+
+```text
+gs://{bucket}/quizzes/{quiz_id}/meta.json
+gs://{bucket}/quizzes/{quiz_id}/reference.csv
+gs://{bucket}/quizzes/{quiz_id}/raw/*.txt   # optional LLM traces
+```
+
+**Credentials:** GCS does not use a Gemini-style API key. It uses
+[Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials):
+
+| Environment | Setup |
+|-------------|-------|
+| **Cloud Run** | Grant the runtime service account `roles/storage.objectAdmin` on the bucket. No JSON key on the server. |
+| **Local dev** | Service account JSON via `GOOGLE_APPLICATION_CREDENTIALS`, or `gcloud auth application-default login`. |
+
+**One-time bucket setup** (replace `YOUR_BUCKET_NAME`):
+
+```bash
+# 1. Cloud Run runtime SA — object access on the bucket
+RUNTIME_SA=$(gcloud run services describe personality-quiz-api \
+  --region us-west1 \
+  --format='value(spec.template.spec.serviceAccountName)')
+gcloud storage buckets add-iam-policy-binding gs://YOUR_BUCKET_NAME \
+  --member="serviceAccount:${RUNTIME_SA}" \
+  --role="roles/storage.objectAdmin"
+
+# 2. Local dev — create a JSON key (Console: IAM → Service Accounts → Keys → Add key)
+# Grant the same role to your dev SA, then in .env:
+#   GCS_QUIZZES_BUCKET=YOUR_BUCKET_NAME
+#   GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/dev-sa-key.json
+```
+
+Set `GCS_QUIZZES_BUCKET` on Cloud Run (or add a `GCS_QUIZZES_BUCKET` GitHub Actions
+secret so deploy passes `--set-env-vars`). See [`.env.example`](./.env.example).
+
+Without `GCS_QUIZZES_BUCKET`, quizzes are stored only on local disk under
+`api/data/quizzes/` (fine for dev; ephemeral on Cloud Run).
+
 ## Frontend (Next.js, Vercel)
 
 The web UI lives in [`frontend/`](./frontend). See [`frontend/README.md`](./frontend/README.md) for run/test instructions.
@@ -153,7 +197,7 @@ Add **repository secrets** under Settings → Secrets and variables → Actions:
 - **`GCP_SA_KEY`** (required) — full service account JSON with Artifact Registry Writer,
   Cloud Run Admin, and Service Account User
 - Optional: `GCP_PROJECT_ID`, `GCP_REGION`, `AR_REPOSITORY`, `IMAGE_NAME`,
-  `CLOUD_RUN_SERVICE` (defaults match this project's GCP setup)
+  `CLOUD_RUN_SERVICE`, `GCS_QUIZZES_BUCKET` (defaults match this project's GCP setup)
 
 ## Roadmap
 

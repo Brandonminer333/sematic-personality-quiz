@@ -6,7 +6,7 @@ import { createQuiz } from '@/lib/api';
 import { useApiBase } from '@/components/ApiProvider';
 import { clearAllQuizSessions, setLastError, setQuizMeta } from '@/lib/session';
 
-const MAX_PROMPT_LENGTH = 255;
+const MAX_PROMPT_LENGTH = 120;
 
 export default function LandingPage() {
   const router = useRouter();

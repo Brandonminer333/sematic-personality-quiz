@@ -22,8 +22,6 @@ node_modules/
 # generated quiz artifacts
 api/data/quizzes/
 
-# google cloud service account key
-personality-quiz-492907-8cbe5bbc5008.json
-
+# logs
 **/*.log
 *.log

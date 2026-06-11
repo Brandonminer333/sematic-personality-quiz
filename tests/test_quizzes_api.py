@@ -49,7 +49,7 @@ def _fake_spec(prompt: str, _llm) -> FranchiseSpec:
 def quiz_client(tmp_path) -> TestClient:
     store = QuizJobStore()
 
-    def _instant_generation(quiz_id, spec, *, store, out_dir=None, llm=None):
+    def _instant_generation(quiz_id, spec, *, store, out_dir=None, llm=None, gcs_store=None):
         rows = [
             ReferenceRow("Harry Potter", "Gryffindor", ["strongly agree"] * 15),
             ReferenceRow("Draco Malfoy", "Slytherin", ["somewhat disagree"] * 15),
@@ -68,7 +68,9 @@ def quiz_client(tmp_path) -> TestClient:
         spec_builder=_fake_spec,
         generation_runner=_instant_generation,
         quizzes_out_dir=tmp_path,
+        gcs_store=None,
     )
+    app.state.job_store = store
     return TestClient(app)
 
 
@@ -120,6 +122,36 @@ def test_quiz_results_classifies_custom_quiz(quiz_client: TestClient):
     assert body["closest_character"]["name"] in {"Harry Potter", "Draco Malfoy"}
     assert "class" in body["closest_character"]
     assert "score" in body["closest_character"]
+
+
+def test_get_quiz_status_hydrates_from_disk_after_store_clear(quiz_client: TestClient, tmp_path):
+    created = quiz_client.post("/quizzes", json={"prompt": "Hogwarts houses"}).json()
+    quiz_id = created["quiz_id"]
+    _wait_for_ready(quiz_client, quiz_id)
+
+    # Simulate API restart: in-memory store empty, artifacts still on disk.
+    quiz_client.app.state.job_store.clear()
+
+    status = quiz_client.get(f"/quizzes/{quiz_id}")
+    assert status.status_code == 200
+    body = status.json()
+    assert body["status"] == "ready"
+    assert body["title"] == "Harry Potter"
+
+
+def test_quiz_results_hydrates_from_disk_after_store_clear(quiz_client: TestClient):
+    created = quiz_client.post("/quizzes", json={"prompt": "Hogwarts houses"}).json()
+    quiz_id = created["quiz_id"]
+    _wait_for_ready(quiz_client, quiz_id)
+
+    quiz_client.app.state.job_store.clear()
+
+    r = quiz_client.post(
+        "/quiz_results",
+        json={"quiz_id": quiz_id, "answers": [1.0] * 15},
+    )
+    assert r.status_code == 200
+    assert r.json()["quiz_id"] == quiz_id
 
 
 def test_quiz_results_returns_202_while_generating(tmp_path):

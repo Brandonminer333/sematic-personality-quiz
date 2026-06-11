@@ -6,11 +6,14 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 
 from api.generation.models import FranchiseSpec
 from api.generation.orchestrator import generate_quiz
 from api.llm.client import LLMClient
+
+if TYPE_CHECKING:
+    from api.storage.quiz_store import GcsQuizStore
 
 QuizStatus = Literal["generating", "ready", "failed"]
 
@@ -83,6 +86,7 @@ def run_generation_job(
     store: QuizJobStore,
     out_dir: str | Path | None = None,
     llm: LLMClient | None = None,
+    gcs_store: GcsQuizStore | None = None,
 ) -> None:
     """Background worker: stages 3–5 for a parsed franchise spec."""
     try:
@@ -94,6 +98,11 @@ def run_generation_job(
             save_raw=True,
         )
         store.mark_ready(quiz_id, reference_csv=artifact.reference_csv)
+        if gcs_store is not None:
+            try:
+                gcs_store.upload_quiz_dir(artifact.quiz_dir)
+            except Exception as exc:
+                store.mark_failed(quiz_id, f"failed to upload quiz to GCS: {exc}")
     except Exception as exc:
         store.mark_failed(quiz_id, str(exc))
 
@@ -105,6 +114,7 @@ def start_generation_in_background(
     store: QuizJobStore,
     out_dir: str | Path | None = None,
     llm: LLMClient | None = None,
+    gcs_store: GcsQuizStore | None = None,
     runner: Callable[..., None] | None = None,
 ) -> None:
     """Spawn generation on a daemon thread (MVP async)."""
@@ -117,6 +127,7 @@ def start_generation_in_background(
             "store": store,
             "out_dir": out_dir,
             "llm": llm,
+            "gcs_store": gcs_store,
         },
         daemon=True,
     )
