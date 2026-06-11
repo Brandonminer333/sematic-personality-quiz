@@ -1,13 +1,14 @@
 # CI: pre-commit + pytest, then deploy API image to Artifact Registry + Cloud Run.
 #
-# Required GitHub repository secrets:
-#   GCP_SA_KEY — JSON key for a service account with:
-#     - Artifact Registry Writer
-#     - Cloud Run Admin
-#     - Service Account User
+# Required secret GCP_SA_KEY — full service account JSON key with:
+#   Artifact Registry Writer, Cloud Run Admin, Service Account User
+#
+# Store as a **repository** secret (Settings → Secrets and variables → Actions →
+# Repository secrets), OR on the GitHub Environment below (same name: GCP_SA_KEY).
 #
 # Optional repository variables (defaults match this project's GCP setup):
 #   GCP_PROJECT_ID, GCP_REGION, AR_REPOSITORY, IMAGE_NAME, CLOUD_RUN_SERVICE
+#   DEPLOY_ENVIRONMENT — override deploy environment name (default: github-actions)
 
 name: CI and Deploy API
 
@@ -63,10 +64,24 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    # Environment-scoped secrets (e.g. GCP_SA_KEY) are only visible when the job
+    # declares the environment. Repository secrets work with or without this line.
+    environment: ${{ vars.DEPLOY_ENVIRONMENT || 'github-actions' }}
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify GCP_SA_KEY secret
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          if [ -z "$GCP_SA_KEY" ]; then
+            echo "::error::GCP_SA_KEY is missing or empty."
+            echo "Add it as a Repository secret OR as a secret on the '${{ vars.DEPLOY_ENVIRONMENT || 'github-actions' }}' environment."
+            echo "Settings → Secrets and variables → Actions"
+            exit 1
+          fi
 
       - uses: google-github-actions/auth@v2
         with:

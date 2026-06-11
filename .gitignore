@@ -23,6 +23,7 @@ node_modules/
 api/data/quizzes/
 
 # google cloud service account key
-personality-quiz-492907-8cbe5bbc5008
+personality-quiz-492907-8cbe5bbc5008.json
 
+**/*.log
 *.log

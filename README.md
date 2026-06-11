@@ -148,9 +148,15 @@ Pushes to `main` that touch the API or tests run [`.github/workflows/deploy-api.
 2. `pytest -m "not application"`
 3. Build → push to Artifact Registry → deploy Cloud Run
 
-Add a GitHub secret `GCP_SA_KEY` (service account JSON with Artifact Registry Writer,
-Cloud Run Admin, and Service Account User). Optional repo variables: `GCP_PROJECT_ID`,
-`GCP_REGION`, `AR_REPOSITORY`, `IMAGE_NAME`, `CLOUD_RUN_SERVICE`.
+Add secret **`GCP_SA_KEY`** (full service account JSON) with Artifact Registry Writer,
+Cloud Run Admin, and Service Account User. Either:
+
+- **Repository secret** — Settings → Secrets and variables → Actions → Repository secrets, or
+- **Environment secret** — same UI → Environments → `github-actions` → add `GCP_SA_KEY`
+  (the deploy job uses the `github-actions` environment by default)
+
+Optional repo variables: `GCP_PROJECT_ID`, `GCP_REGION`, `AR_REPOSITORY`, `IMAGE_NAME`,
+`CLOUD_RUN_SERVICE`, `DEPLOY_ENVIRONMENT` (if your environment has a different name).
 
 ## Roadmap
 
