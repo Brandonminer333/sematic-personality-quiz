@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import os
+import time
 import uuid
 from collections.abc import Callable
 from pathlib import Path
@@ -10,7 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
@@ -18,7 +20,14 @@ from pydantic import BaseModel, Field, field_validator
 from api.generation.discover_roster import build_franchise_spec_from_prompt
 from api.generation.models import FranchiseSpec
 from api.generation.quiz_jobs import QuizJobStore, get_default_job_store, start_generation_in_background
-from api.llm.client import GeminiRateLimitError, LLMClient
+from api.llm.client import GeminiRateLimitError, GeminiUnavailableError, LLMClient
+from api.llm.errors import (
+    AI_PROVIDER_OVERLOAD_MESSAGE,
+    http_status_for_error,
+    is_ai_provider_overload,
+    user_facing_error,
+)
+from api.logging_config import setup_logging
 from api.storage.quiz_resolver import resolve_quiz_job
 from api.storage.quiz_store import GcsQuizStore, default_cache_dir
 
@@ -35,6 +44,9 @@ from .classifier import (
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(REPO_ROOT / ".env")
+setup_logging()
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_REFERENCE_CSV = Path(__file__).parent / "data" / "gym_leaders.csv"
 PRESET_QUIZ_ID = "preset"
@@ -216,8 +228,13 @@ def _job_status_payload(job) -> QuizStatusResponse:
             "completed": job.progress_completed,
             "total": job.progress_total,
         },
-        error=job.error,
+        error=user_facing_error(job.error) if job.error else None,
     )
+
+
+def _raise_for_failed_job(job) -> None:
+    detail = user_facing_error(job.error)
+    raise HTTPException(status_code=http_status_for_error(job.error), detail=detail)
 
 
 def _wait_for_ready_job(
@@ -241,8 +258,7 @@ def _wait_for_ready_job(
     if job.status == "ready":
         return job
     if job.status == "failed":
-        detail = job.error or "quiz generation failed"
-        raise HTTPException(status_code=422, detail=detail)
+        _raise_for_failed_job(job)
     return JSONResponse(
         status_code=202,
         content=_job_status_payload(job).model_dump(),
@@ -287,6 +303,27 @@ def create_app(
         allow_headers=["*"],
     )
 
+    @app.middleware("http")
+    async def log_requests(request: Request, call_next):
+        start = time.perf_counter()
+        response = await call_next(request)
+        duration_ms = round((time.perf_counter() - start) * 1000, 2)
+        log_fn = logger.warning if response.status_code >= 400 else logger.info
+        log_fn(
+            "%s %s -> %s",
+            request.method,
+            request.url.path,
+            response.status_code,
+            extra={
+                "http_method": request.method,
+                "http_path": request.url.path,
+                "http_status": response.status_code,
+                "duration_ms": duration_ms,
+                "event": "http_request",
+            },
+        )
+        return response
+
     @app.get("/healthz")
     def healthz() -> dict[str, str | int]:
         return {"status": "ok", "reference_size": len(reference.leaders)}
@@ -312,16 +349,26 @@ def create_app(
                 spec = build_franchise_spec_from_prompt(prompt, LLMClient())
         except HTTPException:
             raise
-        except GeminiRateLimitError:
+        except (GeminiRateLimitError, GeminiUnavailableError):
+            logger.warning(
+                "Gemini unavailable while creating quiz",
+                extra={"stage": "parse_spec", "event": "gemini_overload"},
+            )
             raise HTTPException(
                 status_code=503,
-                detail=(
-                    "Gemini API rate limit exceeded while creating your quiz. "
-                    "Wait a minute and try again, or set FAKE_QUIZ_SPEC=1 in .env "
-                    "for local development without Gemini."
-                ),
+                detail=AI_PROVIDER_OVERLOAD_MESSAGE,
             )
         except ValueError as exc:
+            if is_ai_provider_overload(str(exc)):
+                logger.warning(
+                    "Gemini unavailable while creating quiz: %s",
+                    exc,
+                    extra={"stage": "parse_spec", "event": "gemini_overload"},
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail=AI_PROVIDER_OVERLOAD_MESSAGE,
+                ) from exc
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(
@@ -331,6 +378,10 @@ def create_app(
 
         quiz_id = uuid.uuid4().hex
         store.create(quiz_id=quiz_id, spec=spec)
+        logger.info(
+            "Quiz created",
+            extra={"quiz_id": quiz_id, "stage": "create", "event": "quiz_created"},
+        )
         start_generation_in_background(
             quiz_id,
             spec,

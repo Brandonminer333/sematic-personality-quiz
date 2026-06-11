@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import uuid
 from pathlib import Path
 
@@ -11,6 +12,8 @@ from api.generation.persist import default_quizzes_dir, write_quiz_artifact
 from api.generation.roleplay import roleplay_character
 from api.generation.validate import validate_reference_rows
 from api.llm.client import LLMClient
+
+logger = logging.getLogger(__name__)
 
 
 def generate_quiz(
@@ -30,6 +33,15 @@ def generate_quiz(
     llm = llm or LLMClient()
     quiz_id = quiz_id or uuid.uuid4().hex
 
+    logger.info(
+        "Quiz generation started",
+        extra={
+            "quiz_id": quiz_id,
+            "stage": "generation",
+            "event": "generation_started",
+        },
+    )
+
     rows: list[ReferenceRow] = []
     raw_responses: dict[str, str] = {}
     source_urls: dict[str, str | None] = {}
@@ -37,7 +49,13 @@ def generate_quiz(
 
     for index, character_ref in enumerate(spec.characters, start=1):
         label = f"[{index}/{len(spec.characters)}] {character_ref.name}"
-        print(f"Roleplaying {label}...")
+        log_extra = {
+            "quiz_id": quiz_id,
+            "stage": "roleplay",
+            "character": character_ref.name,
+            "class_name": character_ref.character_class,
+        }
+        logger.info("Roleplaying %s", label, extra={**log_extra, "event": "roleplay_started"})
         try:
             result = roleplay_character(
                 character_ref.name,
@@ -48,7 +66,12 @@ def generate_quiz(
             )
         except Exception as exc:
             skipped.append((character_ref.name, str(exc)))
-            print(f"  skipped: {exc}")
+            logger.warning(
+                "Skipped %s: %s",
+                character_ref.name,
+                exc,
+                extra={**log_extra, "event": "roleplay_skipped"},
+            )
             continue
 
         rows.append(
@@ -61,7 +84,12 @@ def generate_quiz(
         source_urls[result.character] = result.source_url
         if save_raw:
             raw_responses[result.character] = result.raw_response
-        print(f"  done ({character_ref.character_class})")
+        logger.info(
+            "Roleplay complete for %s (%s)",
+            character_ref.name,
+            character_ref.character_class,
+            extra={**log_extra, "event": "roleplay_done"},
+        )
 
     if not rows:
         if skipped:
@@ -90,6 +118,21 @@ def generate_quiz(
         raw_responses=raw_responses if save_raw else None,
         source_urls=source_urls,
     )
+    logger.info(
+        "Quiz generation complete",
+        extra={
+            "quiz_id": quiz_id,
+            "stage": "generation",
+            "event": "generation_complete",
+        },
+    )
+    if skipped:
+        logger.warning(
+            "Quiz %s finished with %d skipped character(s)",
+            quiz_id,
+            len(skipped),
+            extra={"quiz_id": quiz_id, "stage": "generation", "event": "characters_skipped"},
+        )
     return artifact, skipped
 
 
@@ -134,13 +177,13 @@ def main(argv: list[str] | None = None) -> int:
         save_raw=not args.no_raw,
     )
 
-    print(f"\nWrote quiz {artifact.quiz_id} to {artifact.quiz_dir}")
-    print(f"  characters: {len(artifact.rows)}")
-    print(f"  reference:  {artifact.reference_csv}")
+    logger.info("Wrote quiz %s to %s", artifact.quiz_id, artifact.quiz_dir)
+    logger.info("  characters: %d", len(artifact.rows))
+    logger.info("  reference:  %s", artifact.reference_csv)
     if skipped:
-        print(f"  skipped:    {len(skipped)}")
+        logger.warning("  skipped:    %d", len(skipped))
         for name, reason in skipped:
-            print(f"    - {name}: {reason}")
+            logger.warning("    - %s: %s", name, reason)
     return 0
 
 

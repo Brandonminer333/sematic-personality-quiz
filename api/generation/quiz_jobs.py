@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -14,6 +15,8 @@ from api.llm.client import LLMClient
 
 if TYPE_CHECKING:
     from api.storage.quiz_store import GcsQuizStore
+
+logger = logging.getLogger(__name__)
 
 QuizStatus = Literal["generating", "ready", "failed"]
 
@@ -89,6 +92,10 @@ def run_generation_job(
     gcs_store: GcsQuizStore | None = None,
 ) -> None:
     """Background worker: stages 3–5 for a parsed franchise spec."""
+    logger.info(
+        "Background generation job started",
+        extra={"quiz_id": quiz_id, "stage": "generation", "event": "job_started"},
+    )
     try:
         artifact, _skipped = generate_quiz(
             spec,
@@ -98,12 +105,29 @@ def run_generation_job(
             save_raw=True,
         )
         store.mark_ready(quiz_id, reference_csv=artifact.reference_csv)
+        logger.info(
+            "Background generation job ready",
+            extra={"quiz_id": quiz_id, "stage": "generation", "event": "job_ready"},
+        )
         if gcs_store is not None:
             try:
                 gcs_store.upload_quiz_dir(artifact.quiz_dir)
+                logger.info(
+                    "Quiz artifacts uploaded to GCS",
+                    extra={"quiz_id": quiz_id, "stage": "gcs_upload", "event": "upload_done"},
+                )
             except Exception as exc:
-                store.mark_failed(quiz_id, f"failed to upload quiz to GCS: {exc}")
+                error = f"failed to upload quiz to GCS: {exc}"
+                logger.exception(
+                    "GCS upload failed",
+                    extra={"quiz_id": quiz_id, "stage": "gcs_upload", "event": "upload_failed"},
+                )
+                store.mark_failed(quiz_id, error)
     except Exception as exc:
+        logger.exception(
+            "Background generation job failed",
+            extra={"quiz_id": quiz_id, "stage": "generation", "event": "job_failed"},
+        )
         store.mark_failed(quiz_id, str(exc))
 
 
