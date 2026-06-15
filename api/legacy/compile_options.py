@@ -18,24 +18,21 @@ def cosine_similarity(vector, vectors):
     return dot_products / norms
 
 
-def rank_types_by_weighted_similarity(new_vector, vectors, df):
+def rank_types_by_mean_similarity(new_vector, vectors, df):
     cosine_similarities = cosine_similarity(new_vector, vectors)
 
-    type_vectors = {}
+    scores = {}
     for pokemon_type in df["Type"].unique():
         mask = df["Type"] == pokemon_type
-        weights = cosine_similarities[mask]
+        scores[pokemon_type] = float(np.mean(cosine_similarities[mask]))
 
-        if np.sum(weights) == 0:
-            type_vectors[pokemon_type] = np.mean(vectors[mask], axis=0)
-        else:
-            type_vectors[pokemon_type] = np.average(
-                vectors[mask], axis=0, weights=weights)
-
-    scores = {pokemon_type: vec.mean()
-              for pokemon_type, vec in type_vectors.items()}
     ranking = pd.Series(scores).sort_values(ascending=False)
     return ranking
+
+
+def rank_types_by_weighted_similarity(new_vector, vectors, df):
+    """Deprecated alias — kept for notebook parity; use mean similarity scoring."""
+    return rank_types_by_mean_similarity(new_vector, vectors, df)
 
 
 def rank_types_by_closest_similarity(new_vector, vectors, df):

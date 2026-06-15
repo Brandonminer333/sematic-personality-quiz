@@ -289,7 +289,7 @@ def create_app(
         title="Semantic Personality Quiz",
         description=(
             "Creates custom franchise quizzes from natural language, classifies "
-            "15-answer Likert vectors via weighted cosine similarity, and returns "
+            "15-answer Likert vectors via cosine similarity, and returns "
             "a 3D PCA projection."
         ),
         version="1.2.0",

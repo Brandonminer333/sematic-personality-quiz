@@ -1,13 +1,10 @@
 """Pure classification math, importable from the API and from tests.
 
-The algorithm mirrors `gym_leader_eda.ipynb`:
-
 1. Compute cosine similarity between the user's answer vector and every reference
-   gym-leader vector.
-2. For each Pokémon type, compute a *weighted average* of its leader vectors,
-   using cosine similarities as weights — so leaders that look more like the
-   user contribute more to that type's representative vector.
-3. Score each type by the mean of its representative vector and rank.
+   character vector.
+2. For each class/type, score it by the mean cosine similarity across its
+   characters — how much the user resembles that class on average.
+3. Rank types by that score, descending.
 """
 
 from __future__ import annotations
@@ -78,8 +75,8 @@ def load_reference_data(csv_path: str | Path) -> ReferenceData:
 def cosine_similarity(vector: np.ndarray, vectors: np.ndarray) -> np.ndarray:
     """Cosine similarity of `vector` against each row in `vectors`.
 
-    Returns zeros where a norm is zero rather than NaN, so downstream weighting
-    handles the all-neutral input gracefully.
+    Returns zeros where a norm is zero rather than NaN, so all-neutral inputs
+    score as zero similarity.
     """
     dot_products = vectors @ vector
     norms = np.linalg.norm(vectors, axis=1) * np.linalg.norm(vector)
@@ -91,21 +88,13 @@ def cosine_similarity(vector: np.ndarray, vectors: np.ndarray) -> np.ndarray:
 
 
 def rank_types(answer_vector: np.ndarray, ref: ReferenceData) -> list[tuple[str, float]]:
-    """Rank Pokémon types by weighted-cosine score, descending."""
+    """Rank types by mean cosine similarity to their characters, descending."""
     sims = cosine_similarity(answer_vector, ref.vectors)
 
     scores: dict[str, float] = {}
     for pokemon_type in pd.unique(ref.types):
         mask = ref.types == pokemon_type
-        weights = sims[mask]
-        type_vectors = ref.vectors[mask]
-
-        if np.sum(weights) == 0:
-            type_centroid = np.mean(type_vectors, axis=0)
-        else:
-            type_centroid = np.average(type_vectors, axis=0, weights=weights)
-
-        scores[str(pokemon_type)] = float(type_centroid.mean())
+        scores[str(pokemon_type)] = float(np.mean(sims[mask]))
 
     return sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
 

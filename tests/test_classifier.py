@@ -1,6 +1,6 @@
 """Unit tests for api/classifier.py — pure classification math.
 
-Covers cosine similarity, weighted-cosine ranking, the CSV loader's type
+Covers cosine similarity, mean-similarity type ranking, the CSV loader's type
 normalization, and PCA projection — all on tiny in-memory references or the
 bundled reference CSV, with no network or app boot.
 """
@@ -72,6 +72,16 @@ def test_rank_types_orders_descending():
     assert types == ["Fire", "Water"]
     assert scores == sorted(scores, reverse=True)
     assert scores[0] > scores[1]
+
+
+def test_rank_types_scores_mean_character_similarity():
+    ref = _tiny_reference()
+    answer = np.ones(15)
+    sims = cosine_similarity(answer, ref.vectors)
+    ranking = dict(rank_types(answer, ref))
+    for pokemon_type in np.unique(ref.types):
+        mask = ref.types == pokemon_type
+        assert ranking[str(pokemon_type)] == pytest.approx(float(np.mean(sims[mask])))
 
 
 def test_closest_character_returns_highest_cosine_match():

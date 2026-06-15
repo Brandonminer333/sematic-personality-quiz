@@ -2,7 +2,7 @@
 
 # Semantic Personality Quiz
 
-An interactive personality quiz that maps the user's answers onto a vector space and finds their nearest **Pokémon gym leader type** (Fire, Water, Grass, etc.) by weighted cosine similarity. Gym leaders are used as a proxy: each leader canonically represents one type, and the LLM is prompted to embody that type's general personality rather than the specific character.
+An interactive personality quiz that maps the user's answers onto a vector space and classifies them against fictional **classes** (Pokémon types, Hogwarts houses, etc.) by average cosine similarity to reference characters.
 
 ## Architecture
 
@@ -12,7 +12,7 @@ sematic-personality-quiz/
 ├── api/                       # FastAPI service — classifier (Cloud Run)
 │   ├── __init__.py            # makes `api` an importable package
 │   ├── api.py                 # /classify and /healthz endpoints
-│   ├── classifier.py          # weighted-cosine math + reference loader
+│   ├── classifier.py          # cosine-similarity math + reference loader
 │   ├── data/gym_leaders.csv   # canonical reference vectors (bundled into image)
 │   ├── requirements.txt       # runtime deps for the container
 │   └── Dockerfile
@@ -23,15 +23,15 @@ sematic-personality-quiz/
 └── requirements.txt           # full dev env (incl. api + tests)
 ```
 
-The frontend no longer ships a precomputed answer→type lookup. It collects 15 Likert answers in `[-1, 1]` and POSTs them to the FastAPI backend, which computes weighted cosine similarity over the reference set on demand.
+The frontend no longer ships a precomputed answer→type lookup. It collects 15 Likert answers in `[-1, 1]` and POSTs them to the FastAPI backend, which scores each class by mean cosine similarity to its reference characters on demand.
 
 ## Classification
 
 For an incoming answer vector `v` (15-dim, each entry in `{-1, -0.5, 0, 0.5, 1}`):
 
-1. Compute cosine similarity between `v` and every reference gym-leader vector.
-2. For each Pokémon type, compute a *weighted average* of its leader vectors using the cosine similarities as weights — leaders that look more like the user contribute more.
-3. Score each type by the mean of its weighted-average vector and rank descending.
+1. Compute cosine similarity between `v` and every reference character vector.
+2. For each class, average those similarities across its characters.
+3. Rank classes by that average score, descending.
 
 The top-ranked type is returned along with the full ranking (so the UI can later show top-N or confidence scores).
 

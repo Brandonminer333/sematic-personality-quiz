@@ -27,7 +27,7 @@ export default function ResultView({ result, title }) {
 
         {Array.isArray(result.ranking) && result.ranking.length > 0 && (
           <div className="ranking-list">
-            <div className="famous-label">Class ranking</div>
+            <div className="famous-label">Class ranking (avg. similarity)</div>
             <ul className="ranking-items">
               {result.ranking.map((entry) => (
                 <li key={entry.type} className="ranking-item">
