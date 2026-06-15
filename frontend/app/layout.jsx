@@ -1,5 +1,6 @@
 import './globals.css';
 import { ApiProvider } from '@/components/ApiProvider';
+import SiteFooter from '@/components/SiteFooter';
 import { normalizeBaseUrl } from '@/lib/apiBase';
 
 export const metadata = {
@@ -37,7 +38,12 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <ApiProvider apiBaseUrl={apiBaseUrl}>{children}</ApiProvider>
+        <ApiProvider apiBaseUrl={apiBaseUrl}>
+          <div className="site-shell">
+            <main className="site-main">{children}</main>
+            <SiteFooter />
+          </div>
+        </ApiProvider>
       </body>
     </html>
   );

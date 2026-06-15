@@ -23,8 +23,51 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 24px 16px 60px;
+  padding: 24px 16px 32px;
   overflow-x: hidden;
+}
+
+.site-shell {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.site-main {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.site-footer {
+  width: 100%;
+  max-width: 640px;
+  text-align: center;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.support-link {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.support-link:hover {
+  color: var(--accent2);
+  border-color: var(--accent2);
 }
 
 /* Starfield bg */
