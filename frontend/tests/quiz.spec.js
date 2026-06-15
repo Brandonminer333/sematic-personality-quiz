@@ -85,3 +85,27 @@ test('full quiz flow renders a result card', async ({ page }) => {
   await shareBtn.click();
   await expect(shareBtn).toHaveText('Copied!');
 });
+
+test('shows daily limit message when quiz creation is rate limited', async ({ page }) => {
+  await page.route('**/quizzes', async (route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          detail:
+            "You've used all 5 quiz creations for today. Please come back tomorrow.",
+        }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Your prompt' }).fill('Hogwarts houses');
+  await page.getByRole('button', { name: /CREATE QUIZ/ }).click();
+
+  await expect(page.getByRole('alert')).toContainText('5 quiz creations for today');
+  await expect(page).toHaveURL('/');
+});

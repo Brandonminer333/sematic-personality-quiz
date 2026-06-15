@@ -632,6 +632,17 @@ header {
   color: var(--accent2);
 }
 
+.daily-limit-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent2);
+  background: rgba(255, 107, 107, 0.08);
+  color: var(--accent2);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .quiz-catalog-list {
   list-style: none;
   margin: 0 0 8px;

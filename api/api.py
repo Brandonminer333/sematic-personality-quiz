@@ -28,6 +28,12 @@ from api.llm.errors import (
     user_facing_error,
 )
 from api.logging_config import setup_logging
+from api.rate_limit import (
+    DailyQuizRateLimiter,
+    NoOpQuizRateLimiter,
+    client_key_from_request,
+    daily_quiz_limit_message,
+)
 from api.storage.quiz_resolver import resolve_quiz_job
 from api.storage.quiz_store import GcsQuizStore, default_cache_dir, list_quiz_catalog
 
@@ -287,6 +293,7 @@ def create_app(
     quizzes_out_dir: str | Path | None = None,
     gcs_store: GcsQuizStore | None | object = _GCS_STORE_UNSET,
     cache_dir: str | Path | None = None,
+    quiz_rate_limiter: DailyQuizRateLimiter | NoOpQuizRateLimiter | None = None,
 ) -> FastAPI:
     """Build a FastAPI app, optionally with injected dependencies (for tests)."""
     if reference is None:
@@ -300,6 +307,11 @@ def create_app(
     else:
         quiz_gcs_store = gcs_store  # type: ignore[assignment]
     quiz_cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
+    rate_limiter = (
+        quiz_rate_limiter
+        if quiz_rate_limiter is not None
+        else DailyQuizRateLimiter.from_env()
+    )
 
     app = FastAPI(
         title="Semantic Personality Quiz",
@@ -345,7 +357,7 @@ def create_app(
         return {"status": "ok", "reference_size": len(reference.leaders)}
 
     @app.post("/quizzes", response_model=CreateQuizResponse, status_code=202)
-    def create_quiz(payload: CreateQuizRequest) -> CreateQuizResponse:
+    def create_quiz(request: Request, payload: CreateQuizRequest) -> CreateQuizResponse:
         """Stages 1–2 synchronously, then start async generation (stages 3–5)."""
         prompt = payload.prompt.strip()
         try:
@@ -391,6 +403,21 @@ def create_app(
                 status_code=500,
                 detail=f"failed to parse quiz prompt: {exc}",
             ) from exc
+
+        client_key = client_key_from_request(request)
+        allowed, _remaining = rate_limiter.try_consume(client_key)
+        if not allowed:
+            logger.info(
+                "Daily quiz creation limit reached",
+                extra={
+                    "event": "quiz_rate_limited",
+                    "daily_limit": rate_limiter.daily_limit,
+                },
+            )
+            raise HTTPException(
+                status_code=429,
+                detail=daily_quiz_limit_message(rate_limiter.daily_limit),
+            )
 
         quiz_id = uuid.uuid4().hex
         store.create(quiz_id=quiz_id, spec=spec)

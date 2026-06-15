@@ -14,6 +14,7 @@ export default function LandingPage() {
   const apiBase = useApiBase();
   const [promptLength, setPromptLength] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [dailyLimitMessage, setDailyLimitMessage] = useState(null);
 
   useEffect(() => {
     clearAllQuizSessions();
@@ -28,6 +29,7 @@ export default function LandingPage() {
     if (!trimmed) return;
 
     setSubmitting(true);
+    setDailyLimitMessage(null);
     try {
       const created = await createQuiz(apiBase, trimmed);
       setQuizMeta(created.quiz_id, {
@@ -36,6 +38,13 @@ export default function LandingPage() {
       });
       router.push(`/creating/${created.quiz_id}`);
     } catch (err) {
+      if (err?.status === 429) {
+        setDailyLimitMessage(
+          err.message ||
+            "You've used all 5 quiz creations for today. Please come back tomorrow.",
+        );
+        return;
+      }
       setLastError(err?.message || 'create quiz failed');
       router.push('/error');
     } finally {
@@ -72,6 +81,11 @@ export default function LandingPage() {
         <div className="prompt-meta">
           {promptLength}/{MAX_PROMPT_LENGTH}
         </div>
+        {dailyLimitMessage ? (
+          <p className="daily-limit-error" role="alert">
+            {dailyLimitMessage}
+          </p>
+        ) : null}
         <button className="start-btn" type="submit" disabled={submitting}>
           {submitting ? 'CREATING…' : 'CREATE QUIZ ▶'}
         </button>

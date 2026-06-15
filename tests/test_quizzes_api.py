@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.api import create_app
+from api.rate_limit import DailyQuizRateLimiter, NoOpQuizRateLimiter
 from api.classifier import ReferenceData, load_reference_data
 from api.generation.models import CharacterRef, FranchiseSpec, ReferenceRow
 from api.generation.persist import write_quiz_artifact
@@ -69,6 +70,7 @@ def quiz_client(tmp_path) -> TestClient:
         generation_runner=_instant_generation,
         quizzes_out_dir=tmp_path,
         gcs_store=None,
+        quiz_rate_limiter=NoOpQuizRateLimiter(),
     )
     app.state.job_store = store
     return TestClient(app)
@@ -183,6 +185,7 @@ def test_quiz_results_returns_202_while_generating(tmp_path):
         spec_builder=_fake_spec,
         generation_runner=lambda **kwargs: None,
         quizzes_out_dir=tmp_path,
+        quiz_rate_limiter=NoOpQuizRateLimiter(),
     )
     client = TestClient(app)
 

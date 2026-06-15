@@ -1,6 +1,14 @@
 const DEFAULT_POLL_MS = 500;
 export const QUIZ_RESULTS_TIMEOUT_MS = 5 * 60 * 1000;
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 async function parseErrorDetail(res) {
   try {
     const data = await res.json();
@@ -20,7 +28,7 @@ export async function createQuiz(apiBase, prompt) {
   });
   if (!res.ok) {
     const detail = await parseErrorDetail(res);
-    throw new Error(detail || `create quiz failed: ${res.status}`);
+    throw new ApiError(detail || `create quiz failed: ${res.status}`, res.status);
   }
   return res.json();
 }
