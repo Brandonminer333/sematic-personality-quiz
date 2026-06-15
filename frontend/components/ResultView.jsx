@@ -72,7 +72,7 @@ export default function ResultView({ result, title, quizId }) {
 
       <div className="card result-card" style={{ borderTop: `5px solid ${classColor}` }}>
         <h2 className="result-type" style={{ color: classColor }}>
-          You are a {result.type}
+          {result.type}
         </h2>
 
         {closest?.name && (
