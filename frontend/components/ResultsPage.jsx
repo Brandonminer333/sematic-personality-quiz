@@ -23,5 +23,5 @@ export default function ResultsPage({ quizId }) {
 
   if (!result) return null;
 
-  return <ResultView result={result} title={title} />;
+  return <ResultView result={result} title={title} quizId={quizId} />;
 }

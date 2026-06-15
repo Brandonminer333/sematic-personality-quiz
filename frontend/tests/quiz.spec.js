@@ -79,4 +79,9 @@ test('full quiz flow renders a result card', async ({ page }) => {
   await page.waitForURL(`**/quiz/${MOCK_QUIZ_ID}/results`, { timeout: 10000 });
   await expect(page.locator('.result-card')).toBeVisible();
   await expect(page.locator('.result-type')).toContainText('Gryffindor');
+
+  const shareBtn = page.getByRole('button', { name: 'Copy quiz link' });
+  await expect(shareBtn).toBeVisible();
+  await shareBtn.click();
+  await expect(shareBtn).toHaveText('Copied!');
 });

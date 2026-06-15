@@ -510,6 +510,36 @@ header {
   font-size: 13px;
 }
 
+.share-btn {
+  display: block;
+  margin: 8px auto 24px;
+  background: transparent;
+  border: 2px solid var(--accent2);
+  border-radius: 14px;
+  color: var(--accent2);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.share-btn:hover {
+  background: var(--accent2);
+  color: #000;
+}
+
+.share-btn--copied {
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+.share-btn--copied:hover {
+  background: #4ade80;
+  color: #000;
+}
+
 .start-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

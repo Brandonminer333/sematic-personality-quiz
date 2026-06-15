@@ -1,11 +1,67 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PcaPlot from '@/components/PcaPlot';
 import { colorForLabel } from '@/lib/colors';
 
-export default function ResultView({ result, title }) {
+async function copyTextToClipboard(text) {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through to execCommand
+    }
+  }
+
+  if (typeof document === 'undefined') return false;
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'absolute';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    return document.execCommand('copy');
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
+export default function ResultView({ result, title, quizId }) {
   const classColor = colorForLabel(result?.type);
   const closest = result?.closest_character;
+  const [shareLabel, setShareLabel] = useState('Share');
+  const resetTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
+
+  const handleShare = useCallback(async () => {
+    if (!quizId) return;
+
+    const url = `${window.location.origin}/quiz/${quizId}`;
+    const copied = await copyTextToClipboard(url);
+
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+
+    if (copied) {
+      setShareLabel('Copied!');
+      resetTimerRef.current = setTimeout(() => setShareLabel('Share'), 2000);
+    } else {
+      setShareLabel('Copy failed');
+      resetTimerRef.current = setTimeout(() => setShareLabel('Share'), 2000);
+    }
+  }, [quizId]);
+
+  const shareCopied = shareLabel === 'Copied!';
 
   return (
     <div className="container">
@@ -37,6 +93,17 @@ export default function ResultView({ result, title }) {
               ))}
             </ul>
           </div>
+        )}
+
+        {quizId && (
+          <button
+            type="button"
+            className={`share-btn${shareCopied ? ' share-btn--copied' : ''}`}
+            aria-label="Copy quiz link"
+            onClick={handleShare}
+          >
+            {shareLabel}
+          </button>
         )}
 
         {result?.projection && (
