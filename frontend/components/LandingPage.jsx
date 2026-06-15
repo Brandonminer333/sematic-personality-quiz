@@ -41,7 +41,7 @@ export default function LandingPage() {
       if (err?.status === 429) {
         setDailyLimitMessage(
           err.message ||
-            "You've used all 5 quiz creations for today. Please come back tomorrow.",
+            "You've used all 5 quiz creations for today. Please come back tomorrow. Feel free to try out locally! https://github.com/Brandonminer333/sematic-personality-quiz/",
         );
         return;
       }

@@ -94,7 +94,7 @@ test('shows daily limit message when quiz creation is rate limited', async ({ pa
         contentType: 'application/json',
         body: JSON.stringify({
           detail:
-            "You've used all 5 quiz creations for today. Please come back tomorrow.",
+            "You've used all 5 quiz creations for today. Please come back tomorrow. Feel free to try out locally! https://github.com/Brandonminer333/sematic-personality-quiz/",
         }),
       });
       return;
@@ -107,5 +107,6 @@ test('shows daily limit message when quiz creation is rate limited', async ({ pa
   await page.getByRole('button', { name: /CREATE QUIZ/ }).click();
 
   await expect(page.getByRole('alert')).toContainText('5 quiz creations for today');
+  await expect(page.getByRole('alert')).toContainText('github.com/Brandonminer333/sematic-personality-quiz');
   await expect(page).toHaveURL('/');
 });

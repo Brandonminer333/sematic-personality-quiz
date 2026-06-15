@@ -43,8 +43,10 @@ def test_daily_quiz_rate_limiter_resets_after_limit():
 
 
 def test_daily_quiz_limit_message_uses_limit():
-    assert "3" in daily_quiz_limit_message(3)
-    assert "tomorrow" in daily_quiz_limit_message(3).lower()
+    message = daily_quiz_limit_message(3)
+    assert "3" in message
+    assert "tomorrow" in message.lower()
+    assert "github.com/Brandonminer333/sematic-personality-quiz" in message
 
 
 def test_client_key_from_request_uses_forwarded_for():
@@ -82,6 +84,7 @@ def test_create_quiz_returns_429_after_daily_limit(tmp_path):
     assert r.status_code == 429
     assert "today" in r.json()["detail"].lower()
     assert "2" in r.json()["detail"]
+    assert "github.com/Brandonminer333/sematic-personality-quiz" in r.json()["detail"]
 
 
 def test_daily_quiz_rate_limiter_rejects_invalid_limit():

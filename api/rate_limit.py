@@ -11,15 +11,22 @@ from fastapi import Request
 
 DEFAULT_DAILY_QUIZ_LIMIT = 5
 
+GITHUB_REPO_URL = "https://github.com/Brandonminer333/sematic-personality-quiz/"
+
+LOCAL_TRY_MESSAGE = (
+    f" Feel free to try out locally! {GITHUB_REPO_URL}"
+)
+
 DAILY_QUIZ_LIMIT_MESSAGE = (
-    "You've used all 5 quiz creations for today. Please come back tomorrow."
+    "You've used all 5 quiz creations for today. "
+    f"Please come back tomorrow.{LOCAL_TRY_MESSAGE}"
 )
 
 
 def daily_quiz_limit_message(limit: int) -> str:
     return (
         f"You've used all {limit} quiz creations for today. "
-        "Please come back tomorrow."
+        f"Please come back tomorrow.{LOCAL_TRY_MESSAGE}"
     )
 
 
