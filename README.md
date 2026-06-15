@@ -4,6 +4,12 @@ An interactive personality quiz that maps the user's answers onto a vector space
 
 Users describe a franchise in natural language; the backend uses Gemini to build a character roster, roleplays each character through 15 Likert questions, and classifies new answers on demand.
 
+## Demo
+
+[![Demo run](https://img.youtube.com/vi/nbmXpvmtohc/maxresdefault.jpg)](https://youtu.be/nbmXpvmtohc)
+
+[Watch on YouTube](https://youtu.be/nbmXpvmtohc)
+
 ## Quickstart: local development
 
 No Docker or GCP required. You need **Python 3.13**, **npm**, a **Gemini API key**, and internet access (Gemini + Fandom wiki scraping).
