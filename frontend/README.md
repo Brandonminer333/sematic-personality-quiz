@@ -110,17 +110,22 @@ frontend/
 | `CLOUD_RUN_URI` | Backend API base URL (server-side, used in `layout.jsx`) |
 | `NEXT_PUBLIC_API_URL` | Optional client fallback if `CLOUD_RUN_URI` is unset |
 
-Copy `frontend/.env.example` to `frontend/.env.local` for local dev.
+For local dev, copy `frontend/.env.example` to `frontend/.env.local`. Full setup (backend `.env`, Gemini key, two-terminal run) is in the **[root README quickstart](../README.md#quickstart-local-development)**.
 
 ## Local development
 
+See the **[root README — Quickstart: local development](../README.md#quickstart-local-development)** for prerequisites, backend setup, and running both servers.
+
+Frontend-only steps:
+
 ```bash
+cd frontend
 npm install
-cp .env.example .env.local   # set CLOUD_RUN_URI (see .env.example)
+cp .env.example .env.local   # CLOUD_RUN_URI=http://localhost:8080
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Run the FastAPI backend on port 8080 — see the root README.
+Open [http://localhost:3000](http://localhost:3000). The API must be running on port 8080 (`uvicorn api.api:app --reload --port 8080` from the repo root).
 
 ## End-to-end tests
 
