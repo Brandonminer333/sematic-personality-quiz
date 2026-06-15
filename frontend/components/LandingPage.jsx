@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createQuiz } from '@/lib/api';
 import { useApiBase } from '@/components/ApiProvider';
@@ -75,6 +76,10 @@ export default function LandingPage() {
           {submitting ? 'CREATING…' : 'CREATE QUIZ ▶'}
         </button>
       </form>
+
+      <Link href="/quizzes" className="browse-quizzes-btn">
+        LOOK AT OTHER QUIZZES
+      </Link>
     </div>
   );
 }

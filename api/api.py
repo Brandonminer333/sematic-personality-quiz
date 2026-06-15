@@ -29,7 +29,7 @@ from api.llm.errors import (
 )
 from api.logging_config import setup_logging
 from api.storage.quiz_resolver import resolve_quiz_job
-from api.storage.quiz_store import GcsQuizStore, default_cache_dir
+from api.storage.quiz_store import GcsQuizStore, default_cache_dir, list_quiz_catalog
 
 from .classifier import (
     PCAModel,
@@ -50,6 +50,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_REFERENCE_CSV = Path(__file__).parent / "data" / "gym_leaders.csv"
 PRESET_QUIZ_ID = "preset"
+
+_GCS_STORE_UNSET = object()
 
 MAX_PROMPT_LENGTH = 120
 def _gemini_api_key_configured() -> bool:
@@ -96,6 +98,17 @@ class CreateQuizResponse(BaseModel):
     status: str
     title: str
     classes: list[str]
+
+
+class QuizCatalogItem(BaseModel):
+    quiz_id: str
+    title: str
+    source_prompt: str | None = None
+    created_at: str | None = None
+
+
+class QuizCatalogResponse(BaseModel):
+    quizzes: list[QuizCatalogItem]
 
 
 class QuizStatusResponse(BaseModel):
@@ -272,7 +285,7 @@ def create_app(
     spec_builder: Callable[[str, LLMClient | None], FranchiseSpec] | None = None,
     generation_runner: Callable[..., None] | None = None,
     quizzes_out_dir: str | Path | None = None,
-    gcs_store: GcsQuizStore | None = None,
+    gcs_store: GcsQuizStore | None | object = _GCS_STORE_UNSET,
     cache_dir: str | Path | None = None,
 ) -> FastAPI:
     """Build a FastAPI app, optionally with injected dependencies (for tests)."""
@@ -282,7 +295,10 @@ def create_app(
 
     preset_pca = fit_pca_model(reference)
     store = job_store if job_store is not None else get_default_job_store()
-    quiz_gcs_store = gcs_store if gcs_store is not None else GcsQuizStore.from_env()
+    if gcs_store is _GCS_STORE_UNSET:
+        quiz_gcs_store = GcsQuizStore.from_env()
+    else:
+        quiz_gcs_store = gcs_store  # type: ignore[assignment]
     quiz_cache_dir = Path(cache_dir) if cache_dir is not None else default_cache_dir()
 
     app = FastAPI(
@@ -395,6 +411,21 @@ def create_app(
             status="generating",
             title=spec.franchise_name,
             classes=list(spec.classes),
+        )
+
+    @app.get("/quizzes", response_model=QuizCatalogResponse)
+    def list_quizzes() -> QuizCatalogResponse:
+        """List persisted quizzes from GCS and/or local storage."""
+        try:
+            rows = list_quiz_catalog(gcs_store=quiz_gcs_store, out_dir=quizzes_out_dir)
+        except Exception as exc:
+            logger.exception("Failed to list quizzes", extra={"event": "quiz_list_failed"})
+            raise HTTPException(
+                status_code=500,
+                detail=f"failed to list quizzes: {exc}",
+            ) from exc
+        return QuizCatalogResponse(
+            quizzes=[QuizCatalogItem(**row) for row in rows],
         )
 
     @app.get("/quizzes/{quiz_id}", response_model=QuizStatusResponse)

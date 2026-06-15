@@ -25,6 +25,15 @@ export async function createQuiz(apiBase, prompt) {
   return res.json();
 }
 
+export async function listQuizzes(apiBase) {
+  const res = await fetch(`${apiBase}/quizzes`);
+  if (!res.ok) {
+    const detail = await parseErrorDetail(res);
+    throw new Error(detail || `list quizzes failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function getQuizStatus(apiBase, quizId) {
   const res = await fetch(`${apiBase}/quizzes/${quizId}`);
   if (!res.ok) {

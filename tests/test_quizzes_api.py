@@ -74,6 +74,26 @@ def quiz_client(tmp_path) -> TestClient:
     return TestClient(app)
 
 
+def test_list_quizzes_returns_local_catalog(quiz_client: TestClient, tmp_path):
+    write_quiz_artifact(
+        quiz_id="listed1",
+        spec=_fake_spec("Hogwarts houses", None),
+        rows=[
+            ReferenceRow("Harry Potter", "Gryffindor", ["strongly agree"] * 15),
+            ReferenceRow("Draco Malfoy", "Slytherin", ["somewhat disagree"] * 15),
+        ],
+        out_dir=tmp_path,
+    )
+
+    r = quiz_client.get("/quizzes")
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body["quizzes"]) == 1
+    assert body["quizzes"][0]["quiz_id"] == "listed1"
+    assert body["quizzes"][0]["title"] == "Harry Potter"
+    assert body["quizzes"][0]["source_prompt"] == "Hogwarts houses"
+
+
 def test_create_quiz_returns_generating_status(quiz_client: TestClient):
     r = quiz_client.post("/quizzes", json={"prompt": "Hogwarts houses"})
     assert r.status_code == 202

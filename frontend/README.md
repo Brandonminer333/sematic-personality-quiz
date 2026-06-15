@@ -9,6 +9,7 @@ If you are new to Next.js or React, read **Project layout for beginners** below 
 | Route | Purpose |
 |-------|---------|
 | `/` | Landing — describe a fictional class system |
+| `/quizzes` | Browse quizzes created by the community |
 | `/creating/[quizId]` | Brief “creating” screen before questions |
 | `/quiz/[quizId]` | 15 Likert questions |
 | `/quiz/[quizId]/waiting` | Classify via `POST /quiz_results` |

@@ -25,6 +25,52 @@ def load_meta_from_path(meta_path: Path) -> dict:
     return json.loads(meta_path.read_text(encoding="utf-8"))
 
 
+def quiz_summary_from_meta(meta: dict, quiz_id: str) -> dict:
+    """Extract list-catalog fields from a persisted meta.json object."""
+    return {
+        "quiz_id": quiz_id,
+        "title": str(meta.get("title") or meta.get("franchise_name") or quiz_id),
+        "source_prompt": meta.get("source_prompt"),
+        "created_at": meta.get("created_at"),
+    }
+
+
+def list_local_quiz_summaries(out_dir: str | Path | None = None) -> list[dict]:
+    """List quizzes with meta.json under the local quizzes directory."""
+    base = Path(out_dir) if out_dir is not None else default_quizzes_dir()
+    if not base.is_dir():
+        return []
+
+    items: list[dict] = []
+    for quiz_dir in sorted(base.iterdir()):
+        if not quiz_dir.is_dir():
+            continue
+        meta_path = quiz_dir / "meta.json"
+        if not meta_path.is_file():
+            continue
+        meta = load_meta_from_path(meta_path)
+        items.append(quiz_summary_from_meta(meta, quiz_dir.name))
+    return items
+
+
+def list_quiz_catalog(
+    *,
+    gcs_store: GcsQuizStore | None,
+    out_dir: str | Path | None = None,
+) -> list[dict]:
+    """Merge local and GCS quiz metadata; GCS wins on duplicate quiz_id."""
+    by_id: dict[str, dict] = {}
+    for item in list_local_quiz_summaries(out_dir):
+        by_id[item["quiz_id"]] = item
+    if gcs_store is not None:
+        for item in gcs_store.list_quiz_summaries():
+            by_id[item["quiz_id"]] = item
+
+    results = list(by_id.values())
+    results.sort(key=lambda row: row.get("created_at") or "", reverse=True)
+    return results
+
+
 def default_cache_dir() -> Path:
     raw = os.getenv("QUIZZES_CACHE_DIR", "").strip()
     return Path(raw) if raw else DEFAULT_CACHE_DIR
@@ -67,6 +113,21 @@ class GcsQuizStore:
         if not blob.exists():
             return None
         return json.loads(blob.download_as_text(encoding="utf-8"))
+
+    def list_quiz_summaries(self) -> list[dict]:
+        """List quiz_id, title, and source_prompt for every meta.json in the bucket."""
+        prefix = f"{self.prefix}/"
+        items: list[dict] = []
+        for blob in self._bucket().list_blobs(prefix=prefix):
+            if not blob.name.endswith("/meta.json"):
+                continue
+            relative = blob.name[len(prefix) :]
+            quiz_id = relative[: -len("/meta.json")]
+            if not quiz_id or "/" in quiz_id:
+                continue
+            meta = json.loads(blob.download_as_text(encoding="utf-8"))
+            items.append(quiz_summary_from_meta(meta, quiz_id))
+        return items
 
     def upload_quiz_dir(self, quiz_dir: Path) -> None:
         quiz_id = quiz_dir.name
