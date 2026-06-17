@@ -43,7 +43,7 @@ def test_generate_text_forwards_prompt_and_returns_text(monkeypatch):
 
     assert out == "fake gemini reply"
     assert captured["contents"] == "hello world"
-    assert captured["model"] == "gemini-2.5-flash"
+    assert captured["model"] == "gemini-2.0-flash"
 
 
 class _FlakyModels:

@@ -61,7 +61,7 @@ class LLMClient:
         for attempt in range(max_retries + 1):
             try:
                 return self.client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-2.0-flash",
                     contents=prompt,
                 ).text
             except Exception as exc:
