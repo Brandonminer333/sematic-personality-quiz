@@ -4,6 +4,8 @@ An interactive personality quiz that maps the user's answers onto a vector space
 
 Users describe a franchise in natural language; the backend uses Gemini to build a character roster, roleplays each character through 15 Likert questions, and classifies new answers on demand.
 
+[Check it out](https://sematic-personality-quiz.vercel.app/)
+
 ## Demo
 
 [![Demo run](https://img.youtube.com/vi/nbmXpvmtohc/maxresdefault.jpg)](https://youtu.be/nbmXpvmtohc)
